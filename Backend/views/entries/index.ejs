@@ -1,0 +1,246 @@
+<% layout('layout') %>
+<%- include('../partials/sidebar') %>
+<%- include('../partials/flash') %>
+
+<main class="lg:pl-[220px] min-h-screen pt-14 lg:pt-0 flex flex-col">
+  <!-- Topbar / Breadcrumb -->
+  <%- include('../partials/topbar') %>
+
+  <div class="flex-1 p-4 sm:p-6 max-w-[1400px] w-full mx-auto flex flex-col">
+    <!-- Page Header -->
+    <div class="mb-6 sm:mb-8 scroll-reveal flex flex-col sm:flex-row sm:items-end justify-between gap-4">
+      <div>
+        <h1 class="text-2xl font-semibold tracking-tight mb-1">Entries</h1>
+        <p class="text-text-secondary text-sm">Review and manage your academic logs.</p>
+      </div>
+      <a href="/entries/new" class="btn-primary !py-2 !text-xs shrink-0"><span class="dot"></span> New Entry</a>
+    </div>
+
+    <!-- Filters & Search Bar -->
+    <div class="flex flex-col sm:flex-row gap-3 mb-6 scroll-reveal relative z-10" style="transition-delay: 60ms;">
+      <!-- Search Input -->
+      <div class="relative flex-1">
+        <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="text-text-tertiary"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
+        </div>
+        <input type="text" id="search-input" value="<%= filters.topic %>" placeholder="SEARCH REGISTRY..." class="oxide-input !pl-9 font-mono text-xs w-full" autocomplete="off">
+        
+        <!-- Suggestions Dropdown -->
+        <div id="search-suggestions" class="absolute top-full left-0 w-full mt-1 bg-surface-1 border border-border-emphasis rounded-sm shadow-xl z-50 hidden overflow-hidden">
+          <!-- Populated via JS -->
+        </div>
+      </div>
+
+      <!-- Filters -->
+      <div class="flex flex-wrap gap-3 sm:w-auto w-full">
+        <!-- Category Filter -->
+        <div class="relative custom-select sm:w-[150px] w-full" id="custom-category-filter">
+          <button type="button" class="oxide-input !py-2 !px-3 font-mono text-xs flex items-center justify-between w-full cursor-pointer select-btn text-text-secondary">
+            <span class="selected-text flex items-center gap-2">
+              <% 
+                let catVal = filters.category || '';
+                let catText = catVal ? catVal.toUpperCase() : 'ALL CATEGORIES';
+              %>
+              <span class="w-1.5 h-1.5 rounded-full <%= catVal ? 'bg-accent-amber animate-pulse' : 'bg-text-tertiary' %>"></span>
+              <%= catText %>
+            </span>
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="text-text-tertiary transition-transform duration-200 chevron"><polyline points="6 9 12 15 18 9"></polyline></svg>
+          </button>
+          <input type="hidden" id="category-filter" value="<%= catVal %>">
+          
+          <div class="absolute left-0 mt-1.5 bg-surface-1 border border-border-emphasis shadow-2xl rounded-sm z-50 hidden dropdown-menu p-2 space-y-1 min-w-[220px] max-h-[300px] overflow-y-auto">
+            <button type="button" class="w-full text-left p-2.5 hover:bg-surface-2 transition-colors rounded-sm flex flex-col gap-0.5 cursor-pointer option-item <%= catVal === '' ? 'active' : '' %>" data-value="">
+              <span class="option-display-name font-mono text-xs text-text-primary flex items-center gap-2">
+                <span class="w-1.5 h-1.5 rounded-full bg-text-tertiary"></span>
+                ALL CATEGORIES
+              </span>
+              <span class="font-mono text-[9px] text-text-tertiary uppercase leading-normal">Show every category entry.</span>
+            </button>
+            <% 
+              const catFilters = [
+                { val: 'General', desc: 'General reflections and personal logs.' },
+                { val: 'Lecture', desc: 'Theoretical summaries and classroom notes.' },
+                { val: 'Lab', desc: 'Practical setup and debugging logs.' },
+                { val: 'Project', desc: 'Project milestones and design updates.' },
+                { val: 'Research', desc: 'Whitepaper summaries and studies.' },
+                { val: 'Exam Prep', desc: 'Study guide and revision notes.' }
+              ];
+            %>
+            <% catFilters.forEach(cat => { %>
+              <button type="button" class="w-full text-left p-2.5 hover:bg-surface-2 transition-colors rounded-sm flex flex-col gap-0.5 cursor-pointer option-item <%= catVal === cat.val ? 'active' : '' %>" data-value="<%= cat.val %>">
+                <span class="option-display-name font-mono text-xs text-text-primary flex items-center gap-2">
+                  <span class="w-1.5 h-1.5 rounded-full bg-accent-amber"></span>
+                  <%= cat.val.toUpperCase() %>
+                </span>
+                <span class="font-mono text-[9px] text-text-tertiary uppercase leading-normal"><%= cat.desc %></span>
+              </button>
+            <% }) %>
+          </div>
+        </div>
+
+        <!-- Status Filter -->
+        <div class="relative custom-select sm:w-[150px] w-full" id="custom-status-filter">
+          <button type="button" class="oxide-input !py-2 !px-3 font-mono text-xs flex items-center justify-between w-full cursor-pointer select-btn text-text-secondary">
+            <span class="selected-text flex items-center gap-2">
+              <% 
+                let statusVal = filters.status || '';
+                let statusText = statusVal ? statusVal.toUpperCase() : 'ALL STATUS';
+              %>
+              <span class="w-1.5 h-1.5 rounded-full <%= statusVal ? 'bg-accent-amber animate-pulse' : 'bg-text-tertiary' %>"></span>
+              <%= statusText %>
+            </span>
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="text-text-tertiary transition-transform duration-200 chevron"><polyline points="6 9 12 15 18 9"></polyline></svg>
+          </button>
+          <input type="hidden" id="status-filter" value="<%= statusVal %>">
+          
+          <div class="absolute left-0 mt-1.5 bg-surface-1 border border-border-emphasis shadow-2xl rounded-sm z-50 hidden dropdown-menu p-2 space-y-1 min-w-[220px] max-h-[300px] overflow-y-auto">
+            <button type="button" class="w-full text-left p-2.5 hover:bg-surface-2 transition-colors rounded-sm flex flex-col gap-0.5 cursor-pointer option-item <%= statusVal === '' ? 'active' : '' %>" data-value="">
+              <span class="option-display-name font-mono text-xs text-text-primary flex items-center gap-2">
+                <span class="w-1.5 h-1.5 rounded-full bg-text-tertiary"></span>
+                ALL STATUS
+              </span>
+              <span class="font-mono text-[9px] text-text-tertiary uppercase leading-normal">Show entries of any completion status.</span>
+            </button>
+            <% 
+              const statusFilters = [
+                { val: 'pending', desc: 'Awaiting action or execution.' },
+                { val: 'in-progress', desc: 'Currently being actively worked on.' },
+                { val: 'completed', desc: 'Successfully finalized academic logs.' }
+              ];
+            %>
+            <% statusFilters.forEach(st => { %>
+              <button type="button" class="w-full text-left p-2.5 hover:bg-surface-2 transition-colors rounded-sm flex flex-col gap-0.5 cursor-pointer option-item <%= statusVal === st.val ? 'active' : '' %>" data-value="<%= st.val %>">
+                <span class="option-display-name font-mono text-xs text-text-primary flex items-center gap-2">
+                  <span class="w-1.5 h-1.5 rounded-full bg-accent-amber"></span>
+                  <%= st.val.toUpperCase() %>
+                </span>
+                <span class="font-mono text-[9px] text-text-tertiary uppercase leading-normal"><%= st.desc %></span>
+              </button>
+            <% }) %>
+          </div>
+        </div>
+
+        <!-- Complexity Filter -->
+        <div class="relative custom-select sm:w-[150px] w-full" id="custom-diff-filter">
+          <button type="button" class="oxide-input !py-2 !px-3 font-mono text-xs flex items-center justify-between w-full cursor-pointer select-btn text-text-secondary">
+            <span class="selected-text flex items-center gap-2">
+              <% 
+                let diffVal = filters.difficulty || '';
+                let diffText = diffVal ? (diffVal === 'medium' ? 'NOMINAL' : diffVal.toUpperCase()) : 'ALL COMPLEXITY';
+              %>
+              <span class="w-1.5 h-1.5 rounded-full <%= diffVal ? 'bg-accent-amber animate-pulse' : 'bg-text-tertiary' %>"></span>
+              <%= diffText %>
+            </span>
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="text-text-tertiary transition-transform duration-200 chevron"><polyline points="6 9 12 15 18 9"></polyline></svg>
+          </button>
+          <input type="hidden" id="diff-filter" value="<%= diffVal %>">
+          
+          <div class="absolute left-0 mt-1.5 bg-surface-1 border border-border-emphasis shadow-2xl rounded-sm z-50 hidden dropdown-menu p-2 space-y-1 min-w-[220px] max-h-[300px] overflow-y-auto">
+            <button type="button" class="w-full text-left p-2.5 hover:bg-surface-2 transition-colors rounded-sm flex flex-col gap-0.5 cursor-pointer option-item <%= diffVal === '' ? 'active' : '' %>" data-value="">
+              <span class="option-display-name font-mono text-xs text-text-primary flex items-center gap-2">
+                <span class="w-1.5 h-1.5 rounded-full bg-text-tertiary"></span>
+                ALL COMPLEXITY
+              </span>
+              <span class="font-mono text-[9px] text-text-tertiary uppercase leading-normal">Show logs of any technical complexity level.</span>
+            </button>
+            <% 
+              const diffFilters = [
+                { val: 'low', label: 'LOW', desc: 'Basic, straightforward documentation notes.' },
+                { val: 'medium', label: 'NOMINAL', desc: 'Standard architectural logs and implementations.' },
+                { val: 'high', label: 'HIGH', desc: 'Highly complex, debugging, or research tasks.' }
+              ];
+            %>
+            <% diffFilters.forEach(df => { %>
+              <button type="button" class="w-full text-left p-2.5 hover:bg-surface-2 transition-colors rounded-sm flex flex-col gap-0.5 cursor-pointer option-item <%= diffVal === df.val ? 'active' : '' %>" data-value="<%= df.val %>">
+                <span class="option-display-name font-mono text-xs text-text-primary flex items-center gap-2">
+                  <span class="w-1.5 h-1.5 rounded-full bg-accent-amber"></span>
+                  <%= df.label %>
+                </span>
+                <span class="font-mono text-[9px] text-text-tertiary uppercase leading-normal"><%= df.desc %></span>
+              </button>
+            <% }) %>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Data Table -->
+    <div class="oxide-card flex-1 flex flex-col scroll-reveal" style="transition-delay: 120ms;">
+      <div class="overflow-x-auto flex-1">
+        <table class="w-full text-left border-collapse whitespace-nowrap min-w-[800px]">
+          <thead>
+            <tr class="border-b border-border-default">
+              <th class="pb-3 pr-4 font-mono text-[10px] text-text-tertiary font-normal w-32">DATE / TIME</th>
+              <th class="pb-3 px-4 font-mono text-[10px] text-text-tertiary font-normal">SUBJECT TITLE</th>
+              <th class="pb-3 px-4 font-mono text-[10px] text-text-tertiary font-normal text-center w-24">DURATION</th>
+              <th class="pb-3 px-4 font-mono text-[10px] text-text-tertiary font-normal text-center w-32">COMPLEXITY</th>
+              <th class="pb-3 px-4 font-mono text-[10px] text-text-tertiary font-normal text-center w-28">CATEGORY</th>
+              <th class="pb-3 pl-4 font-mono text-[10px] text-text-tertiary font-normal text-right w-48">INITIAL STATUS</th>
+            </tr>
+          </thead>
+          <tbody id="entries-table-body" class="text-sm">
+            <% if (entries && entries.length > 0) { %>
+              <% entries.forEach(entry => { %>
+                <tr class="border-b border-border-default/50 table-row cursor-pointer group" onclick="window.location.href='/entries/<%= entry._id %>'">
+                  <td class="py-3.5 pr-4">
+                    <div class="font-mono text-[11px] text-text-primary"><%= new Date(entry.createdAt).toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' }) %></div>
+                    <div class="font-mono text-[10px] text-text-tertiary mt-0.5"><%= new Date(entry.createdAt).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' }) %></div>
+                  </td>
+                  <td class="py-3.5 px-4">
+                    <div class="font-medium text-text-primary truncate max-w-[300px] md:max-w-[400px] group-hover:text-accent-amber transition-colors"><%= entry.title %></div>
+                    <% if (entry.attachments && entry.attachments.length > 0) { %>
+                      <div class="flex items-center gap-1 mt-1 text-text-tertiary">
+                        <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21.44 11.05l-9.19 9.19a6 6 0 0 1-8.49-8.49l9.19-9.19a4 4 0 0 1 5.66 5.66l-9.2 9.19a2 2 0 0 1-2.83-2.83l8.49-8.48"></path></svg>
+                        <span class="font-mono text-[9px]"><%= entry.attachments.length %> attached</span>
+                      </div>
+                    <% } %>
+                  </td>
+                  <td class="py-3.5 px-4 font-mono text-[11px] text-text-secondary text-center"><%= entry.duration %>m</td>
+                  <td class="py-3.5 px-4 text-center">
+                    <span class="font-mono text-[10px] uppercase tracking-wider badge-<%= entry.difficulty %>"><%= entry.difficulty %></span>
+                  </td>
+                  <td class="py-3.5 px-4 text-center">
+                    <span class="font-mono text-[10px] text-text-secondary uppercase"><%= entry.category || 'General' %></span>
+                  </td>
+                  <td class="py-3.5 pl-4 text-right">
+                    <span class="badge badge-<%= entry.status %>"><%= entry.status %></span>
+                  </td>
+                </tr>
+              <% }) %>
+            <% } else { %>
+              <tr>
+                <td colspan="6" class="py-16 text-center">
+                  <div class="w-12 h-12 border border-border-default border-dashed rounded-lg mx-auto flex items-center justify-center mb-3">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" class="text-text-tertiary"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
+                  </div>
+                  <p class="font-mono text-xs text-text-secondary uppercase tracking-widest">No matching records found.</p>
+                </td>
+              </tr>
+            <% } %>
+          </tbody>
+        </table>
+      </div>
+
+      <!-- Pagination Footer -->
+      <div id="pagination-footer" class="mt-4 pt-4 border-t border-border-default flex items-center justify-between">
+        <span id="pagination-info" class="font-mono text-[10px] text-text-secondary">
+          SHOWING <%= entries.length === 0 ? 0 : ((pagination.page - 1) * pagination.limit) + 1 %>-<%= ((pagination.page - 1) * pagination.limit) + entries.length %> OF <%= pagination.total %>
+        </span>
+        <div id="pagination-controls" class="flex gap-2">
+          <button class="w-7 h-7 border border-border-default rounded flex items-center justify-center text-text-secondary hover:text-text-primary hover:border-border-emphasis transition-all disabled:opacity-50 disabled:pointer-events-none" 
+                  <%= pagination.page <= 1 ? 'disabled' : '' %>
+                  onclick="changePage(<%= pagination.page - 1 %>)">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="15 18 9 12 15 6"></polyline></svg>
+          </button>
+          <button class="w-7 h-7 border border-border-default rounded flex items-center justify-center text-text-secondary hover:text-text-primary hover:border-border-emphasis transition-all disabled:opacity-50 disabled:pointer-events-none"
+                  <%= pagination.page >= pagination.pages ? 'disabled' : '' %>
+                  onclick="changePage(<%= pagination.page + 1 %>)">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 18 15 12 9 6"></polyline></svg>
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+</main>
+
+<script src="/js/entries.js?v=1.0.3"></script>

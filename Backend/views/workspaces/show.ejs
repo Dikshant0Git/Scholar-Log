@@ -1,0 +1,100 @@
+<% layout('layout') %>
+<%- include('../partials/sidebar') %>
+<%- include('../partials/flash') %>
+
+<main class="lg:pl-[220px] min-h-screen pt-14 lg:pt-0 flex flex-col">
+  <%- include('../partials/topbar') %>
+
+  <!-- Hero Backdrop Section -->
+  <div class="relative w-full h-[240px] sm:h-[300px] overflow-hidden group">
+    <!-- Hero Image -->
+    <div class="absolute inset-0 bg-black">
+      <% if (workspace.heroImage || (user && user.backgroundImage)) { %>
+        <img src="<%= workspace.heroImage || user.backgroundImage %>" 
+             alt="Hero" 
+             class="w-full h-full object-cover opacity-75 group-hover:scale-105 transition-transform duration-[2s] ease-out">
+      <% } else { %>
+        <div class="w-full h-full bg-gradient-to-br from-surface-2 to-surface-3 opacity-50"></div>
+      <% } %>
+      <!-- Seamless dark protection mask to guarantee text legibility on light/busy images -->
+      <div class="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent"></div>
+      
+      <!-- Seamless theme-docked blend that fades the bottom edge of the hero into page background -->
+      <div class="absolute bottom-0 left-0 right-0 h-20 bg-gradient-to-t from-background to-transparent"></div>
+    </div>
+
+    <!-- Workspace Info Overlay (Seamlessly integrated, no cards, no borders) -->
+    <div class="absolute bottom-0 left-0 w-full p-6 sm:p-10 z-10">
+      <div class="max-w-[1400px] mx-auto">
+        <div class="flex items-center gap-4 mb-3">
+          <div class="w-3.5 h-3.5 rounded-full shrink-0 shadow-[0_0_10px_rgba(0,0,0,0.5)] border border-white/20" style="background-color: <%= workspace.color || '#f59e0b' %>"></div>
+          <span class="font-mono text-[10px] text-neutral-300 uppercase tracking-[0.2em] font-medium drop-shadow-sm">COLLECTION</span>
+        </div>
+        <h1 class="text-3xl sm:text-4xl font-bold tracking-tight text-white mb-2 drop-shadow-md"><%= workspace.name %></h1>
+        <% if (workspace.description) { %>
+          <p class="text-xs sm:text-sm text-neutral-200 font-mono opacity-90 max-w-2xl drop-shadow-sm leading-relaxed"><%= workspace.description %></p>
+        <% } %>
+      </div>
+    </div>
+
+    <!-- Actions -->
+    <div class="absolute top-6 right-6 flex gap-2">
+      <button onclick="showEditWorkspaceModal('<%= workspace._id %>')" class="btn-secondary !py-1.5 !px-3 !text-[10px] backdrop-blur-md bg-surface-1/50">
+        EDIT WORKSPACE
+      </button>
+      <a href="/entries/new?workspace=<%= workspace._id %>" class="btn-primary !py-1.5 !px-3 !text-[10px]">
+        + ADD ENTRY
+      </a>
+    </div>
+  </div>
+
+  <!-- Content Section -->
+  <div class="flex-1 p-6 sm:p-10 max-w-[1400px] w-full mx-auto">
+
+    <div class="mt-8">
+      <div class="flex items-center justify-between mb-8 pb-4 border-b border-border-default/50">
+        <div class="flex items-center gap-6">
+          <span class="font-mono text-xs text-text-primary border-b-2 border-accent-amber pb-4 -mb-4.5">ENTRIES</span>
+          <span class="font-mono text-xs text-text-tertiary">ANALYTICS</span>
+        </div>
+        <div class="font-mono text-[10px] text-text-tertiary">
+          <%= entries.length %> TOTAL RECORDS
+        </div>
+      </div>
+
+      <% if (entries && entries.length > 0) { %>
+        <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6 stagger">
+          <% entries.forEach(entry => { %>
+            <div class="oxide-card group cursor-pointer scroll-reveal hover:border-accent-amber/50 transition-all duration-300" 
+                 onclick="window.location.href='/entries/<%= entry._id %>'">
+              <div class="flex justify-between items-start mb-4">
+                <span class="font-mono text-[10px] text-text-tertiary"><%= new Date(entry.createdAt).toLocaleDateString() %></span>
+                <span class="font-mono text-[9px] uppercase badge-<%= entry.difficulty %>"><%= entry.difficulty %></span>
+              </div>
+              <h3 class="text-sm font-semibold text-text-primary mb-2 group-hover:text-accent-amber transition-colors line-clamp-1"><%= entry.title %></h3>
+              <p class="text-xs text-text-secondary line-clamp-2 mb-4 font-mono opacity-70"><%= entry.description || 'No description provided.' %></p>
+              
+              <div class="flex items-center justify-between mt-auto pt-4 border-t border-border-default/30">
+                <div class="flex items-center gap-2">
+                  <span class="badge badge-<%= entry.status %> text-[9px]"><%= entry.status %></span>
+                </div>
+                <span class="font-mono text-[10px] text-text-tertiary"><%= entry.duration %>m</span>
+              </div>
+            </div>
+          <% }) %>
+        </div>
+      <% } else { %>
+        <div class="py-20 text-center">
+          <div class="w-16 h-16 border border-border-default border-dashed rounded-full mx-auto flex items-center justify-center mb-4">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" class="text-text-tertiary"><path d="M12 5v14M5 12h14"></path></svg>
+          </div>
+          <p class="font-mono text-xs text-text-tertiary uppercase tracking-widest mb-6">This collection is empty.</p>
+          <a href="/entries/new?workspace=<%= workspace._id %>" class="btn-secondary">Create First Entry</a>
+        </div>
+      <% } %>
+    </div>
+  </div>
+</main>
+
+<%# Workspace-specific scripts are loaded globally via modals.ejs %>
+

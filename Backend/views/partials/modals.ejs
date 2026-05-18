@@ -1,0 +1,485 @@
+<!-- Global Modal Container -->
+<div id="modal-container" class="fixed inset-0 z-[10000] hidden flex items-center justify-center p-4">
+  <div id="modal-overlay" class="absolute inset-0 bg-background/80 backdrop-blur-sm" onclick="closeModal()"></div>
+  
+  <!-- Reusable Custom Confirm Modal -->
+  <div id="custom-confirm-modal" class="relative w-full max-w-md bg-surface-1 border border-danger/30 shadow-2xl rounded-[var(--radius-oxide)] overflow-hidden hidden">
+    <div class="px-6 py-4 border-b border-border-default flex items-center justify-between bg-surface-2">
+      <h3 class="font-mono text-xs text-danger uppercase tracking-widest flex items-center gap-2">
+        <span class="w-1.5 h-1.5 rounded-full bg-danger animate-pulse"></span>
+        CRITICAL ACTION REQUIRED
+      </h3>
+      <button onclick="closeConfirmModal()" class="text-text-tertiary hover:text-text-primary transition-colors cursor-pointer bg-transparent border-0 p-0">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+      </button>
+    </div>
+
+    <div class="p-6 space-y-5">
+      <div class="w-12 h-12 rounded-full border border-danger/30 bg-danger/10 mx-auto flex items-center justify-center text-danger">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path><line x1="12" y1="9" x2="12" y2="13"></line><line x1="12" y1="17" x2="12.01" y2="17"></line></svg>
+      </div>
+
+      <div class="text-center space-y-2">
+        <h4 id="confirm-modal-title" class="text-sm font-semibold text-text-primary uppercase font-mono tracking-tight">TERMINATE JOURNAL RECORD</h4>
+        <p id="confirm-modal-message" class="text-xs text-text-secondary font-mono leading-relaxed">Are you absolutely sure you want to permanently terminate this academic log? This action is irreversible.</p>
+      </div>
+
+      <!-- Verification Input -->
+      <div id="confirm-modal-input-container" class="hidden space-y-2">
+        <label class="mono-label block text-xs text-left mb-1">TYPE "<span id="confirm-modal-required-text" class="text-danger font-bold">PURGE</span>" TO CONFIRM PROCEEDING:</label>
+        <input type="text" id="confirm-modal-input" placeholder="Confirmation text..." class="oxide-input w-full text-center font-mono">
+      </div>
+
+      <div class="grid grid-cols-2 gap-3 pt-2">
+        <button onclick="closeConfirmModal()" class="btn-secondary !py-2.5 justify-center font-mono text-xs cursor-pointer">
+          CANCEL ACTION
+        </button>
+        <button id="confirm-modal-btn" class="btn-danger !w-full !py-2.5 justify-center font-mono text-xs cursor-pointer">
+          CONFIRM TERMINATION
+        </button>
+      </div>
+    </div>
+  </div>
+  
+  <!-- New Workspace Modal -->
+  <div id="new-workspace-modal" class="relative w-full max-w-md bg-surface-1 border border-border-emphasis shadow-2xl rounded-[var(--radius-oxide)] overflow-hidden hidden">
+    <div class="px-6 py-4 border-b border-border-default flex items-center justify-between bg-surface-2">
+      <h3 class="font-mono text-xs text-text-primary uppercase tracking-widest">INITIALIZE NEW COLLECTION</h3>
+      <button onclick="closeModal()" class="text-text-tertiary hover:text-text-primary transition-colors">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+      </button>
+    </div>
+
+    <form id="new-workspace-form" class="p-6 space-y-5">
+      <div>
+        <label class="mono-label block mb-2">COLLECTION NAME</label>
+        <input type="text" name="name" required placeholder="e.g. Advanced Physics Lab" class="oxide-input w-full">
+      </div>
+      
+      <div>
+        <label class="mono-label block mb-2">DESCRIPTION (OPTIONAL)</label>
+        <textarea name="description" rows="3" placeholder="Define the scope of this registry..." class="oxide-input w-full resize-none"></textarea>
+      </div>
+
+      <div class="grid grid-cols-2 gap-4">
+        <div>
+          <label class="mono-label block mb-2">THEME COLOR</label>
+          <div class="flex items-center gap-3">
+            <input type="color" name="color" value="#f59e0b" class="w-8 h-8 bg-transparent border-0 cursor-pointer">
+            <span class="font-mono text-[10px] text-text-tertiary">OXIDE AMBER</span>
+          </div>
+        </div>
+        <div>
+          <label class="mono-label block mb-2">HERO BACKDROP</label>
+          <button type="button" id="modal-bg-btn" class="btn-secondary !py-2 !text-[10px] w-full">Upload Image</button>
+          <input type="file" id="modal-bg-input" class="hidden" accept="image/*">
+          <input type="hidden" name="heroImage" id="modal-bg-url">
+        </div>
+      </div>
+
+      <div id="modal-bg-preview" class="h-20 rounded border border-border-default bg-surface-2 overflow-hidden hidden">
+        <!-- Preview injected here -->
+      </div>
+
+      <button type="submit" class="btn-primary w-full py-3 mt-2">
+        <span class="dot"></span> CREATE WORKSPACE
+      </button>
+    </form>
+  </div>
+
+  <!-- Edit Workspace Modal -->
+  <div id="edit-workspace-modal" class="relative w-full max-w-md bg-surface-1 border border-border-emphasis shadow-2xl rounded-[var(--radius-oxide)] overflow-hidden hidden">
+    <div class="px-6 py-4 border-b border-border-default flex items-center justify-between bg-surface-2">
+      <h3 class="font-mono text-xs text-text-primary uppercase tracking-widest">CONFIGURE COLLECTION</h3>
+      <button onclick="closeModal()" class="text-text-tertiary hover:text-text-primary transition-colors">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+      </button>
+    </div>
+
+    <form id="edit-workspace-form" class="p-6 space-y-5">
+      <input type="hidden" name="id" id="edit-workspace-id">
+      <div>
+        <label class="mono-label block mb-2">COLLECTION NAME</label>
+        <input type="text" name="name" id="edit-workspace-name" required placeholder="e.g. Advanced Physics Lab" class="oxide-input w-full">
+      </div>
+      
+      <div>
+        <label class="mono-label block mb-2">DESCRIPTION (OPTIONAL)</label>
+        <textarea name="description" id="edit-workspace-description" rows="3" placeholder="Define the scope of this registry..." class="oxide-input w-full resize-none"></textarea>
+      </div>
+
+      <div class="grid grid-cols-2 gap-4">
+        <div>
+          <label class="mono-label block mb-2">THEME COLOR</label>
+          <div class="flex items-center gap-3">
+            <input type="color" name="color" id="edit-workspace-color" value="#f59e0b" class="w-8 h-8 bg-transparent border-0 cursor-pointer">
+            <span class="font-mono text-[10px] text-text-tertiary">THEME COLOR</span>
+          </div>
+        </div>
+        <div>
+          <label class="mono-label block mb-2">HERO BACKDROP</label>
+          <button type="button" id="edit-modal-bg-btn" class="btn-secondary !py-2 !text-[10px] w-full">Upload Image</button>
+          <input type="file" id="edit-modal-bg-input" class="hidden" accept="image/*">
+          <input type="hidden" name="heroImage" id="edit-modal-bg-url">
+        </div>
+      </div>
+
+      <div id="edit-modal-bg-preview" class="h-20 rounded border border-border-default bg-surface-2 overflow-hidden hidden">
+        <!-- Preview injected here -->
+      </div>
+
+      <div class="flex gap-3 pt-2">
+        <button type="button" id="edit-workspace-delete-btn" class="btn-danger w-1/3 py-3 font-mono text-xs uppercase cursor-pointer">
+          DELETE
+        </button>
+        <button type="submit" class="btn-primary flex-1 py-3">
+          <span class="dot"></span> SAVE CHANGES
+        </button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<script>
+  function showNewWorkspaceModal() {
+    document.getElementById('modal-container').classList.remove('hidden');
+    document.getElementById('new-workspace-modal').classList.remove('hidden');
+  }
+
+  function closeModal() {
+    document.getElementById('modal-container').classList.add('hidden');
+    const modals = document.querySelectorAll('#modal-container > div:not(#modal-overlay)');
+    modals.forEach(m => m.classList.add('hidden'));
+  }
+
+  // Handle Workspace Creation
+  const newWsForm = document.getElementById('new-workspace-form');
+  if (newWsForm) {
+    newWsForm.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const btn = e.target.querySelector('button[type="submit"]');
+      const originalText = btn.innerHTML;
+      btn.innerHTML = 'INITIALIZING...';
+      btn.disabled = true;
+
+      try {
+        const formData = new FormData(newWsForm);
+        const data = Object.fromEntries(formData.entries());
+
+        const res = await fetch('/api/workspaces', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(data)
+        });
+
+        const result = await res.json();
+        if (res.ok) {
+          showFlash('COLLECTION INITIALIZED', 'success');
+          window.location.href = `/workspaces/${result.workspace._id}`;
+        } else {
+          throw new Error(result.message);
+        }
+      } catch (err) {
+        showFlash(err.message, 'error');
+        btn.innerHTML = originalText;
+        btn.disabled = false;
+      }
+    });
+  }
+
+  // Handle Modal Image Upload
+  const modalBgBtn = document.getElementById('modal-bg-btn');
+  const modalBgInput = document.getElementById('modal-bg-input');
+  if (modalBgBtn && modalBgInput) {
+    modalBgBtn.addEventListener('click', () => modalBgInput.click());
+    modalBgInput.addEventListener('change', async (e) => {
+      const file = e.target.files[0];
+      if (!file) return;
+      
+      const originalText = modalBgBtn.textContent;
+      modalBgBtn.disabled = true;
+      modalBgBtn.textContent = 'UPLOADING...';
+
+      try {
+        showFlash('Uploading backdrop...', 'success');
+        
+        // 1. Client-Side Pristine Canvas Compression
+        const optimizedFile = await window.compressImage(file);
+
+        // 2. Get Signature
+        const sigRes = await fetch(`/api/students/upload-signature?type=background`);
+        const sigData = await sigRes.json();
+
+        // 3. Upload to Cloudinary
+        const formData = new FormData();
+        formData.append('file', optimizedFile);
+        formData.append('api_key', sigData.apiKey);
+        formData.append('timestamp', sigData.timestamp);
+        formData.append('signature', sigData.signature);
+        formData.append('folder', sigData.folder);
+        if (sigData.transformation) formData.append('transformation', sigData.transformation);
+
+        const cloudRes = await fetch(`https://api.cloudinary.com/v1_1/${sigData.cloudName}/image/upload`, {
+          method: 'POST',
+          body: formData
+        });
+
+        const cloudData = await cloudRes.json();
+        if (cloudRes.ok) {
+          document.getElementById('modal-bg-url').value = cloudData.secure_url;
+          const preview = document.getElementById('modal-bg-preview');
+          preview.classList.remove('hidden');
+          preview.innerHTML = `<img src="${cloudData.secure_url}" class="w-full h-full object-cover">`;
+          showFlash('BACKDROP UPLOADED', 'success');
+        }
+      } catch (err) {
+        showFlash(err.message, 'error');
+      } finally {
+        modalBgBtn.disabled = false;
+        modalBgBtn.textContent = originalText;
+      }
+    });
+  }
+
+  // Handle Edit Workspace Dialog & Actions
+  window.showEditWorkspaceModal = async function(id) {
+    try {
+      showFlash('Loading collection settings...', 'info');
+      const res = await fetch(`/api/workspaces/${id}`);
+      const result = await res.json();
+      if (!res.ok) throw new Error(result.message || 'Failed to fetch collection details');
+
+      const ws = result.workspace;
+      document.getElementById('edit-workspace-id').value = ws._id;
+      document.getElementById('edit-workspace-name').value = ws.name;
+      document.getElementById('edit-workspace-description').value = ws.description || '';
+      document.getElementById('edit-workspace-color').value = ws.color || '#f59e0b';
+      
+      const urlInput = document.getElementById('edit-modal-bg-url');
+      const preview = document.getElementById('edit-modal-bg-preview');
+      if (ws.heroImage) {
+        urlInput.value = ws.heroImage;
+        preview.classList.remove('hidden');
+        preview.innerHTML = `<img src="${ws.heroImage}" class="w-full h-full object-cover">`;
+      } else {
+        urlInput.value = '';
+        preview.classList.add('hidden');
+        preview.innerHTML = '';
+      }
+
+      document.getElementById('modal-container').classList.remove('hidden');
+      document.getElementById('edit-workspace-modal').classList.remove('hidden');
+    } catch (err) {
+      showFlash(err.message, 'error');
+    }
+  };
+
+  // Handle Edit Workspace Form Submit
+  const editWsForm = document.getElementById('edit-workspace-form');
+  if (editWsForm) {
+    editWsForm.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const btn = e.target.querySelector('button[type="submit"]');
+      const originalText = btn.innerHTML;
+      btn.innerHTML = 'SAVING CONFIG...';
+      btn.disabled = true;
+
+      try {
+        const id = document.getElementById('edit-workspace-id').value;
+        const formData = new FormData(editWsForm);
+        const data = Object.fromEntries(formData.entries());
+
+        const res = await fetch(`/api/workspaces/${id}`, {
+          method: 'PATCH',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(data)
+        });
+
+        const result = await res.json();
+        if (res.ok) {
+          showFlash('COLLECTION UPDATED', 'success');
+          window.location.reload();
+        } else {
+          throw new Error(result.message);
+        }
+      } catch (err) {
+        showFlash(err.message, 'error');
+        btn.innerHTML = originalText;
+        btn.disabled = false;
+      }
+    });
+  }
+
+  // Handle Edit Modal Image Upload
+  const editModalBgBtn = document.getElementById('edit-modal-bg-btn');
+  const editModalBgInput = document.getElementById('edit-modal-bg-input');
+  if (editModalBgBtn && editModalBgInput) {
+    editModalBgBtn.addEventListener('click', () => editModalBgInput.click());
+    editModalBgInput.addEventListener('change', async (e) => {
+      const file = e.target.files[0];
+      if (!file) return;
+      
+      const originalText = editModalBgBtn.textContent;
+      editModalBgBtn.disabled = true;
+      editModalBgBtn.textContent = 'UPLOADING...';
+
+      try {
+        showFlash('Uploading backdrop...', 'success');
+        
+        // 1. Client-Side Pristine Canvas Compression
+        const optimizedFile = await window.compressImage(file);
+
+        // 2. Get Signature
+        const sigRes = await fetch(`/api/students/upload-signature?type=background`);
+        const sigData = await sigRes.json();
+
+        // 3. Upload to Cloudinary
+        const formData = new FormData();
+        formData.append('file', optimizedFile);
+        formData.append('api_key', sigData.apiKey);
+        formData.append('timestamp', sigData.timestamp);
+        formData.append('signature', sigData.signature);
+        formData.append('folder', sigData.folder);
+        if (sigData.transformation) formData.append('transformation', sigData.transformation);
+
+        const cloudRes = await fetch(`https://api.cloudinary.com/v1_1/${sigData.cloudName}/image/upload`, {
+          method: 'POST',
+          body: formData
+        });
+
+        const cloudData = await cloudRes.json();
+        if (cloudRes.ok) {
+          document.getElementById('edit-modal-bg-url').value = cloudData.secure_url;
+          const preview = document.getElementById('edit-modal-bg-preview');
+          preview.classList.remove('hidden');
+          preview.innerHTML = `<img src="${cloudData.secure_url}" class="w-full h-full object-cover">`;
+          showFlash('BACKDROP UPLOADED', 'success');
+        }
+      } catch (err) {
+        showFlash(err.message, 'error');
+      } finally {
+        editModalBgBtn.disabled = false;
+        editModalBgBtn.textContent = originalText;
+      }
+    });
+  }
+
+  // Handle Edit Workspace Delete Trigger
+  const editWsDeleteBtn = document.getElementById('edit-workspace-delete-btn');
+  if (editWsDeleteBtn) {
+    editWsDeleteBtn.addEventListener('click', () => {
+      const id = document.getElementById('edit-workspace-id').value;
+      const name = document.getElementById('edit-workspace-name').value;
+      
+      window.showConfirmModal({
+        title: 'DELETE WORKSPACE',
+        message: `Are you sure you want to permanently delete the "${name}" collection? Any logged entries will remain, but their association with this workspace will be removed.`,
+        confirmText: 'CONFIRM DELETE',
+        onConfirm: async () => {
+          const res = await fetch(`/api/workspaces/${id}`, {
+            method: 'DELETE'
+          });
+          const result = await res.json();
+          if (res.ok) {
+            showFlash('COLLECTION REMOVED', 'success');
+            window.location.href = '/dashboard';
+          } else {
+            throw new Error(result.message || 'Failed to delete collection');
+          }
+        }
+      });
+    });
+  }
+
+  // Reusable custom confirm modal API
+  let activeConfirmCallback = null;
+  let confirmRequiredText = null;
+
+  window.showConfirmModal = function(options) {
+    const { title, message, confirmText, requireConfirmText, onConfirm } = options;
+    
+    document.getElementById('confirm-modal-title').textContent = title || 'CRITICAL ACTION';
+    document.getElementById('confirm-modal-message').textContent = message || 'Are you sure you want to proceed?';
+    
+    const confirmBtn = document.getElementById('confirm-modal-btn');
+    if (confirmText) {
+      confirmBtn.textContent = confirmText;
+    } else {
+      confirmBtn.textContent = 'CONFIRM TERMINATION';
+    }
+
+    // Reset verification input
+    const inputContainer = document.getElementById('confirm-modal-input-container');
+    const inputField = document.getElementById('confirm-modal-input');
+    if (inputField) inputField.value = '';
+    
+    confirmRequiredText = requireConfirmText || null;
+    if (confirmRequiredText) {
+      document.getElementById('confirm-modal-required-text').textContent = confirmRequiredText;
+      inputContainer.classList.remove('hidden');
+      confirmBtn.disabled = true;
+      confirmBtn.classList.add('opacity-50', 'cursor-not-allowed');
+    } else {
+      inputContainer.classList.add('hidden');
+      confirmBtn.disabled = false;
+      confirmBtn.classList.remove('opacity-50', 'cursor-not-allowed');
+    }
+
+    activeConfirmCallback = onConfirm;
+
+    document.getElementById('modal-container').classList.remove('hidden');
+    document.getElementById('custom-confirm-modal').classList.remove('hidden');
+  };
+
+  window.closeConfirmModal = function() {
+    document.getElementById('custom-confirm-modal').classList.add('hidden');
+    const otherVisibleModals = document.querySelectorAll('#modal-container > div:not(#modal-overlay):not(#custom-confirm-modal):not(.hidden)');
+    if (otherVisibleModals.length === 0) {
+      document.getElementById('modal-container').classList.add('hidden');
+    }
+    activeConfirmCallback = null;
+    confirmRequiredText = null;
+  };
+
+  // Listen to verification input changes
+  const confirmInputField = document.getElementById('confirm-modal-input');
+  if (confirmInputField) {
+    confirmInputField.addEventListener('input', function() {
+      const confirmBtn = document.getElementById('confirm-modal-btn');
+      if (confirmRequiredText && this.value === confirmRequiredText) {
+        confirmBtn.disabled = false;
+        confirmBtn.classList.remove('opacity-50', 'cursor-not-allowed');
+      } else if (confirmRequiredText) {
+        confirmBtn.disabled = true;
+        confirmBtn.classList.add('opacity-50', 'cursor-not-allowed');
+      }
+    });
+  }
+
+  const confirmModalBtn = document.getElementById('confirm-modal-btn');
+  if (confirmModalBtn) {
+    confirmModalBtn.addEventListener('click', async () => {
+      if (activeConfirmCallback) {
+        // Double check confirmation text before executing callback
+        if (confirmRequiredText) {
+          const val = document.getElementById('confirm-modal-input').value;
+          if (val !== confirmRequiredText) return;
+        }
+
+        confirmModalBtn.disabled = true;
+        const originalText = confirmModalBtn.textContent;
+        confirmModalBtn.textContent = 'TERMINATING...';
+        
+        try {
+          await activeConfirmCallback();
+        } catch (err) {
+          console.error(err);
+        } finally {
+          confirmModalBtn.disabled = false;
+          confirmModalBtn.textContent = originalText;
+          closeConfirmModal();
+        }
+      }
+    });
+  }
+</script>

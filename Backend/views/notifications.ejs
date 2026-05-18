@@ -1,0 +1,145 @@
+<% layout('layout') %>
+<%- include('partials/sidebar') %>
+<%- include('partials/flash') %>
+
+<main class="lg:pl-[220px] min-h-screen pt-14 lg:pt-0 flex flex-col">
+  <%- include('partials/topbar') %>
+
+  <div class="flex-1 p-4 sm:p-6 max-w-[1000px] w-full mx-auto space-y-8 scroll-reveal page-enter" style="opacity: 0;">
+    <!-- Breadcrumb & Header -->
+    <div class="border-b border-border-default/50 pb-4">
+      <h2 class="text-xl font-semibold mb-1">Task Notification Center</h2>
+      <p class="text-text-secondary text-sm">Monitor tasks with timing durations and countdown to completion.</p>
+    </div>
+
+    <!-- Active Timers Section -->
+    <div>
+      <span class="mono-label block mb-4 text-accent-amber">Active Log Matrix (Running Timers)</span>
+      
+      <div id="active-timers-container" class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+        <% 
+          let hasActive = false;
+          entries.forEach(entry => {
+            const endTime = new Date(entry.createdAt.getTime() + entry.duration * 60 * 1000);
+            if (endTime > new Date()) {
+              hasActive = true;
+        %>
+          <div class="oxide-card relative overflow-hidden border-l-[3px] border-l-accent-amber active-timer-card flex flex-col h-48 transition-all duration-300 hover:border-accent-amber/50"
+               id="timer-<%= entry._id %>"
+               data-id="<%= entry._id %>"
+               data-title="<%= entry.title %>"
+               data-created="<%= entry.createdAt.toISOString() %>"
+               data-duration="<%= entry.duration %>"
+               data-difficulty="<%= entry.difficulty %>"
+               data-category="<%= entry.category %>">
+             
+            <div class="flex items-center justify-between mb-3">
+              <div class="flex items-center gap-2">
+                <span class="w-2 h-2 rounded-full bg-accent-amber pulse-amber"></span>
+                <span class="font-mono text-[10px] text-text-secondary uppercase"><%= entry.category %></span>
+              </div>
+              <div class="flex items-center gap-2">
+                <span class="font-mono text-[10px] uppercase tracking-wider badge-<%= entry.difficulty %>"><%= entry.difficulty %></span>
+                <button onclick="dismissNotification(event, '<%= entry._id %>')" class="text-text-tertiary hover:text-danger p-0.5 transition-colors cursor-pointer bg-transparent border-none flex items-center justify-center rounded-sm" title="Dismiss Notification">
+                  <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+                </button>
+              </div>
+            </div>
+
+            <h3 class="text-sm font-semibold text-text-primary truncate mb-2" title="<%= entry.title %>"><%= entry.title %></h3>
+            
+            <!-- Progress Bar -->
+            <div class="mb-4">
+              <div class="flex justify-between font-mono text-[9px] text-text-tertiary mb-1">
+                <span>ELAPSED: <span class="elapsed-text">0%</span></span>
+                <span>DURATION: <%= entry.duration %>m</span>
+              </div>
+              <div class="progress-track">
+                <div class="progress-fill bg-accent-amber" style="width: 0%;"></div>
+              </div>
+            </div>
+
+            <!-- Countdown Timer -->
+            <div class="flex items-end justify-between mt-auto pt-2 border-t border-border-default/50">
+              <span class="mono-label-secondary !text-[9px]">REMAINING</span>
+              <span class="countdown-display font-mono text-base text-accent-amber font-semibold tracking-wider">--:--</span>
+            </div>
+
+          </div>
+        <% 
+            }
+          });
+        %>
+        
+        <div id="no-active-timers" class="col-span-full p-8 border border-dashed border-border-emphasis text-center text-text-tertiary font-mono text-xs rounded-[var(--radius-oxide)] <%= hasActive ? 'hidden' : '' %>">
+          NO ACTIVE TIMERS CURRENTLY RUNNING.
+        </div>
+      </div>
+    </div>
+
+    <!-- Completed Logs Section -->
+    <div>
+      <span class="mono-label-secondary block mb-4">Archived Logs (Completed Duration)</span>
+      
+      <div class="oxide-card overflow-hidden">
+        <div class="overflow-x-auto">
+          <table class="w-full text-left border-collapse whitespace-nowrap">
+            <thead>
+              <tr class="border-b border-border-default">
+                <th class="pb-3 pr-4 font-mono text-[10px] text-text-tertiary font-normal">SUBJECT</th>
+                <th class="pb-3 px-4 font-mono text-[10px] text-text-tertiary font-normal text-center w-24">DURATION</th>
+                <th class="pb-3 px-4 font-mono text-[10px] text-text-tertiary font-normal text-center w-28">COMPLEXITY</th>
+                <th class="pb-3 px-4 font-mono text-[10px] text-text-tertiary font-normal text-right w-48">COMPLETED AT</th>
+                <th class="pb-3 pl-4 font-mono text-[10px] text-text-tertiary font-normal text-right w-12">DISMISS</th>
+              </tr>
+            </thead>
+            <tbody id="completed-timers-container" class="text-sm">
+              <% 
+                let hasCompleted = false;
+                entries.forEach(entry => {
+                  const endTime = new Date(entry.createdAt.getTime() + entry.duration * 60 * 1000);
+                  if (endTime <= new Date()) {
+                    hasCompleted = true;
+              %>
+                <tr class="border-b border-border-default/50 table-row cursor-pointer" onclick="window.location.href='/entries/<%= entry._id %>'" id="completed-<%= entry._id %>">
+                  <td class="py-3 pr-4 font-medium text-text-primary truncate max-w-[250px]"><%= entry.title %></td>
+                  <td class="py-3 px-4 font-mono text-[11px] text-text-secondary text-center"><%= entry.duration %>m</td>
+                  <td class="py-3 px-4 text-center">
+                    <span class="font-mono text-[10px] uppercase tracking-wider badge-<%= entry.difficulty %>"><%= entry.difficulty %></span>
+                  </td>
+                  <td class="py-3 px-4 text-right font-mono text-[11px] text-text-secondary">
+                    <%= endTime.toLocaleString('en-US', { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' }) %>
+                  </td>
+                  <td class="py-3 pl-4 text-right">
+                    <button onclick="dismissNotification(event, '<%= entry._id %>')" class="text-text-tertiary hover:text-danger p-1 transition-colors cursor-pointer bg-transparent border-none inline-flex items-center justify-center rounded-sm" title="Dismiss Notification">
+                      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+                    </button>
+                  </td>
+                </tr>
+              <% 
+                  }
+                });
+              %>
+              
+              <tr id="no-completed-timers" class="<%= hasCompleted ? 'hidden' : '' %>">
+                <td colspan="5" class="py-8 text-center text-text-tertiary font-mono text-xs border-b border-border-default/50">NO COMPLETED TIMERS YET.</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <% if (entries.length > 0) { %>
+        <div class="mt-4" style="text-align: right;">
+          <button id="clear-all-btn" onclick="clearAllNotifications()" class="font-mono text-[10px] text-text-tertiary hover:text-danger uppercase border border-border-default hover:border-danger px-3 py-1.5 rounded-sm transition-colors cursor-pointer bg-transparent" style="display: inline-flex; align-items: center; justify-content: center; gap: 6px;">
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>
+            CLEAR ALL NOTIFICATIONS
+          </button>
+        </div>
+      <% } %>
+    </div>
+
+  </div>
+</main>
+
+<script src="/js/notifications.js?v=1.0.1"></script>

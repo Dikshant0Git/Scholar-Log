@@ -1,0 +1,48 @@
+<header class="h-14 border-b border-border-default flex items-center justify-between px-6 bg-surface-1/80 backdrop-blur-sm sticky top-0 z-30">
+  <div class="flex items-center gap-2 font-mono text-[10px] sm:text-xs text-text-tertiary">
+    <a href="/dashboard" class="hover:text-text-primary transition-colors">SCHOLAR LOG</a>
+    <span>/</span>
+    <% if (typeof workspace !== 'undefined' && workspace && workspace.name) { %>
+      <span class="text-text-primary uppercase"><%= workspace.name %></span>
+    <% } else { %>
+      <span class="text-text-primary uppercase"><%= typeof activePage !== 'undefined' ? activePage.replace('-', '_') : 'VIEW' %></span>
+    <% } %>
+  </div>
+
+  <div class="flex items-center gap-4">
+    <a href="/notifications" class="relative text-text-tertiary hover:text-text-primary transition-colors" title="Notifications & Active Timers">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"></path><path d="M13.73 21a2 2 0 0 1-3.46 0"></path></svg>
+      <% if (typeof activeTimersCount !== 'undefined' && activeTimersCount > 0) { %>
+        <span class="absolute top-0.5 right-0.5 w-2.5 h-2.5 bg-accent-amber rounded-full border border-surface-1 pulse-amber"></span>
+      <% } %>
+    </a>
+    
+    <div class="relative">
+      <button id="profile-dropdown-btn" class="flex items-center gap-2 focus:outline-none">
+        <div id="topbar-avatar-container" class="w-8 h-8 rounded-full bg-surface-2 border border-border-default overflow-hidden flex items-center justify-center transition-colors hover:border-accent-amber">
+          <% if (user && user.profilePic) { %>
+            <img src="<%= user.profilePic %>" alt="Profile" class="w-full h-full object-cover">
+          <% } else { %>
+            <span class="font-mono text-xs text-text-secondary"><%= user ? user.name.charAt(0).toUpperCase() : 'U' %></span>
+          <% } %>
+        </div>
+      </button>
+      
+      <!-- Dropdown Menu -->
+      <div id="profile-dropdown-menu" class="absolute right-0 mt-2 w-48 bg-surface-1 border border-border-emphasis rounded-[var(--radius-oxide)] shadow-xl opacity-0 invisible pointer-events-none transition-all duration-200 z-[5] overflow-hidden translate-y-0">
+        <div class="px-4 py-3 border-b border-border-default bg-surface-2">
+          <p class="text-xs font-semibold text-text-primary truncate"><%= user ? user.name : 'User' %></p>
+          <p class="font-mono text-[10px] text-text-tertiary truncate mt-0.5"><%= user ? user.email : '' %></p>
+        </div>
+        <a href="/settings" class="block px-4 py-2 text-xs text-text-secondary hover:text-text-primary hover:bg-surface-2 transition-colors flex items-center gap-2">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>
+          Profile Settings
+        </a>
+        <button onclick="logout()" class="w-full text-left block px-4 py-2 text-xs text-danger hover:bg-danger/10 transition-colors flex items-center gap-2">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path><polyline points="16 17 21 12 16 7"></polyline><line x1="21" y1="12" x2="9" y2="12"></line></svg>
+          Terminate Session
+        </button>
+      </div>
+    </div>
+  </div>
+</header>

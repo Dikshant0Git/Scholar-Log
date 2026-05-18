@@ -1,0 +1,285 @@
+<% layout('layout') %>
+<%- include('partials/sidebar') %>
+<%- include('partials/flash') %>
+
+<main class="lg:pl-[220px] min-h-screen pt-14 lg:pt-0 flex flex-col">
+  <%- include('partials/topbar') %>
+
+  <div class="flex-1 p-4 sm:p-6 max-w-[1000px] w-full mx-auto flex flex-col md:flex-row gap-8 lg:gap-12">
+    <!-- Settings Nav -->
+    <nav class="w-full md:w-48 shrink-0 flex md:flex-col gap-2 overflow-x-auto pb-4 md:pb-0 scroll-reveal">
+      <button class="settings-tab active text-left px-4 py-2 font-mono text-[11px] uppercase tracking-wider rounded whitespace-nowrap transition-colors bg-surface-2 text-text-primary border-l-[3px] border-accent-amber -ml-[3px]" data-target="profile">Profile Matrix</button>
+      <button class="settings-tab text-left px-4 py-2 font-mono text-[11px] uppercase tracking-wider text-text-secondary hover:text-text-primary rounded whitespace-nowrap transition-colors border-l-[3px] border-transparent -ml-[3px]" data-target="appearance">Interface</button>
+      <button class="settings-tab text-left px-4 py-2 font-mono text-[11px] uppercase tracking-wider text-text-secondary hover:text-text-primary rounded whitespace-nowrap transition-colors border-l-[3px] border-transparent -ml-[3px]" data-target="account">Security</button>
+      <button class="settings-tab text-left px-4 py-2 font-mono text-[11px] uppercase tracking-wider text-text-secondary hover:text-text-primary rounded whitespace-nowrap transition-colors border-l-[3px] border-transparent -ml-[3px]" data-target="system">Creator Protocol</button>
+    </nav>
+
+    <!-- Settings Content -->
+    <div class="flex-1">
+      
+      <!-- Profile Section -->
+      <section id="profile-section" class="settings-section space-y-8 scroll-reveal" style="transition-delay: 60ms;">
+        <div>
+          <h2 class="text-xl font-semibold mb-1">Profile Matrix</h2>
+          <p class="text-text-secondary text-sm">Update your public identity and digital signature.</p>
+        </div>
+
+        <form id="profile-form" class="space-y-6">
+          <div class="flex items-center gap-6">
+            <div class="w-20 h-20 rounded-full border border-border-default bg-surface-2 flex items-center justify-center overflow-hidden">
+              <% if (user && user.profilePic) { %>
+                <img src="<%= user.profilePic %>" class="w-full h-full object-cover">
+              <% } else { %>
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" class="text-text-tertiary"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>
+              <% } %>
+            </div>
+            <button type="button" id="avatar-btn" class="btn-secondary !py-2 !px-4 !text-xs">Upload Avatar</button>
+            <input type="file" id="avatar-input" class="hidden" accept="image/*">
+            <input type="hidden" name="profilePic" id="profile-pic-url" value="<%= user.profilePic || '' %>">
+          </div>
+
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-6">
+            <div>
+              <label class="mono-label block mb-2">FULL NAME</label>
+              <input type="text" name="name" class="oxide-input" value="<%= user.name %>" required>
+            </div>
+            <div>
+              <label class="mono-label block mb-2">MOBILE NUMBER</label>
+              <input type="tel" name="mobile" class="oxide-input" value="<%= user.mobile || '' %>" required>
+            </div>
+          </div>
+
+          <div>
+            <label class="mono-label block mb-2">DIGITAL SIGNATURE</label>
+            <textarea name="signature" class="oxide-input !min-h-[100px] font-mono text-sm" placeholder="Your academic sign-off..."><%= user.signature || '' %></textarea>
+          </div>
+
+          <button type="submit" class="btn-primary" id="profile-btn"><span class="dot"></span><span id="profile-btn-text">Save Changes</span></button>
+        </form>
+      </section>
+
+      <!-- Appearance Section -->
+      <section id="appearance-section" class="settings-section space-y-8 hidden">
+        <div>
+          <h2 class="text-xl font-semibold mb-1">Interface Config</h2>
+          <p class="text-text-secondary text-sm">Customize your terminal environment.</p>
+        </div>
+
+        <form id="appearance-form" class="space-y-8">
+          <div>
+            <label class="mono-label block mb-4">THEME PREFERENCE</label>
+            <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+              <!-- Dark Theme -->
+              <label class="relative cursor-pointer group">
+                <input type="radio" name="preferredTheme" value="dark" class="peer sr-only" <%= (!user.settings || user.settings.preferredTheme === 'dark') ? 'checked' : '' %>>
+                <div class="border border-border-default rounded-[var(--radius-oxide)] p-4 bg-surface-1 peer-checked:border-accent-amber transition-colors group-hover:border-border-emphasis">
+                  <div class="h-20 bg-[#0C0C0F] border border-[#26262E] rounded flex flex-col p-2 gap-2 mb-3">
+                    <div class="w-1/3 h-2 bg-[#F0A500] rounded-sm"></div>
+                    <div class="w-2/3 h-1.5 bg-[#8C8A97] rounded-sm"></div>
+                    <div class="w-1/2 h-1.5 bg-[#8C8A97] rounded-sm"></div>
+                  </div>
+                  <div class="flex items-center justify-between">
+                    <span class="font-mono text-xs text-text-primary">DARK TERMINAL</span>
+                    <div class="w-3 h-3 rounded-full border border-border-default peer-checked:border-accent-amber peer-checked:bg-accent-amber flex items-center justify-center transition-colors"><div class="w-1 h-1 rounded-full bg-bg-base hidden peer-checked:block"></div></div>
+                  </div>
+                </div>
+              </label>
+
+              <!-- Light Theme -->
+              <label class="relative cursor-pointer group">
+                <input type="radio" name="preferredTheme" value="light" class="peer sr-only" <%= (user.settings && user.settings.preferredTheme === 'light') ? 'checked' : '' %>>
+                <div class="border border-border-default rounded-[var(--radius-oxide)] p-4 bg-surface-1 peer-checked:border-accent-amber transition-colors group-hover:border-border-emphasis">
+                  <div class="h-20 bg-[#F9F9F9] border border-[#DADADA] rounded flex flex-col p-2 gap-2 mb-3">
+                    <div class="w-1/3 h-2 bg-[#F5A623] rounded-sm"></div>
+                    <div class="w-2/3 h-1.5 bg-[#5E5E63] rounded-sm"></div>
+                    <div class="w-1/2 h-1.5 bg-[#8A8A8F] rounded-sm"></div>
+                  </div>
+                  <div class="flex items-center justify-between">
+                    <span class="font-mono text-xs text-text-primary">SOOTHING LIGHT</span>
+                    <div class="w-3 h-3 rounded-full border border-border-default peer-checked:border-accent-amber peer-checked:bg-accent-amber flex items-center justify-center transition-colors"><div class="w-1 h-1 rounded-full bg-bg-base hidden peer-checked:block"></div></div>
+                  </div>
+                </div>
+              </label>
+
+              <!-- System Theme -->
+              <label class="relative cursor-pointer group">
+                <input type="radio" name="preferredTheme" value="system" class="peer sr-only" <%= (user.settings && user.settings.preferredTheme === 'system') ? 'checked' : '' %>>
+                <div class="border border-border-default rounded-[var(--radius-oxide)] p-4 bg-surface-1 peer-checked:border-accent-amber transition-colors group-hover:border-border-emphasis">
+                  <div class="h-20 flex rounded border border-border-default overflow-hidden mb-3">
+                    <div class="w-1/2 h-full bg-[#0C0C0F]"></div>
+                    <div class="w-1/2 h-full bg-[#F9F9F9]"></div>
+                  </div>
+                  <div class="flex items-center justify-between">
+                    <span class="font-mono text-xs text-text-primary">SYSTEM SYNC</span>
+                    <div class="w-3 h-3 rounded-full border border-border-default peer-checked:border-accent-amber peer-checked:bg-accent-amber flex items-center justify-center transition-colors"><div class="w-1 h-1 rounded-full bg-bg-base hidden peer-checked:block"></div></div>
+                  </div>
+                </div>
+              </label>
+            </div>
+          </div>
+
+          <div class="space-y-4 py-6 border-t border-border-default/50">
+            <div>
+              <span class="mono-label block mb-2 text-text-primary">WORKSPACE BACKGROUND</span>
+              <p class="text-xs text-text-secondary mb-4">Set a custom industrial backdrop for your journal.</p>
+            </div>
+            
+            <div class="flex items-center gap-4">
+              <div class="flex-1 h-20 rounded border border-border-default bg-surface-2 overflow-hidden relative">
+                <% if (user.backgroundImage) { %>
+                  <img src="<%= user.backgroundImage %>" id="bg-preview" class="w-full h-full object-cover">
+                <% } else { %>
+                  <div id="bg-placeholder" class="w-full h-full flex items-center justify-center font-mono text-[10px] text-text-tertiary uppercase">No Custom Background</div>
+                <% } %>
+              </div>
+              <div class="flex flex-col gap-2">
+                <button type="button" id="bg-upload-btn" class="btn-secondary !py-2 !px-4 !text-xs">Select Image</button>
+                <button type="button" id="bg-clear-btn" class="font-mono text-[10px] text-danger hover:underline">Clear</button>
+              </div>
+              <input type="file" id="bg-input" class="hidden" accept="image/*">
+              <input type="hidden" name="backgroundImage" id="bg-url" value="<%= user.backgroundImage || '' %>">
+            </div>
+          </div>
+
+          <div class="flex items-center justify-between py-4 border-t border-border-default/50">
+            <div>
+              <span class="mono-label block mb-1 text-text-primary">SHOW ANALYTICS WIDGETS</span>
+              <p class="text-xs text-text-secondary">Display KPI cards and charts on the dashboard.</p>
+            </div>
+            <div class="toggle <%= user.settings && user.settings.showStats ? 'active' : '' %>" onclick="this.classList.toggle('active')">
+            </div>
+          </div>
+
+          <button type="submit" class="btn-primary" id="appearance-btn"><span class="dot"></span><span id="appearance-btn-text">Update Interface</span></button>
+        </form>
+      </section>
+
+      <!-- Account / Security Section -->
+      <section id="account-section" class="settings-section space-y-8 hidden">
+        <div>
+          <h2 class="text-xl font-semibold mb-1">Security Parameters</h2>
+          <p class="text-text-secondary text-sm">Manage authentication and critical account functions.</p>
+        </div>
+
+        <div class="space-y-6">
+          <div class="flex items-center justify-between p-4 border border-border-default rounded bg-surface-1">
+            <div>
+              <h3 class="text-sm font-medium mb-1">Authentication Key</h3>
+              <p class="text-xs text-text-secondary">Last updated recently. Minimum 8 characters.</p>
+            </div>
+            <button class="btn-secondary !py-2 !px-4 !text-xs" onclick="requestPwChange()">Change Password</button>
+          </div>
+
+          <div class="flex items-center justify-between p-4 border border-border-default rounded bg-surface-1">
+            <div>
+              <h3 class="text-sm font-medium mb-1">Current Session</h3>
+              <p class="text-xs text-text-secondary font-mono"><%= user.email %></p>
+            </div>
+            <button class="btn-secondary !py-2 !px-4 !text-xs" onclick="logout()">Terminate Session</button>
+          </div>
+
+          <!-- Danger Zone -->
+          <div class="mt-12">
+            <span class="mono-label text-danger block mb-4">CRITICAL OPERATIONS</span>
+            <div class="border border-danger-dim/50 rounded bg-danger-dim/5 p-4 sm:p-6">
+              <h3 class="text-base font-semibold text-text-primary mb-2">Purge Workspace</h3>
+              <p class="text-sm text-text-secondary mb-6 leading-relaxed">
+                Permanently delete your account, all journal entries, attachments, and metadata. This action cannot be reversed.
+              </p>
+              <button onclick="deleteAccount()" class="btn-danger w-full sm:w-auto font-bold uppercase tracking-wider text-xs">
+                ⚠ Initiate Purge Sequence
+              </button>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Creator Protocol Section -->
+      <section id="system-section" class="settings-section space-y-8 hidden">
+        <div>
+          <h2 class="text-xl font-semibold mb-1">Creator Protocol</h2>
+          <p class="text-text-secondary text-sm">System core metrics and lead developer information.</p>
+        </div>
+
+        <div class="space-y-6">
+          <!-- Developer Profile Card -->
+          <div class="border border-accent-amber/30 rounded bg-accent-amber/5 p-6 relative overflow-hidden">
+            <!-- Brutalist Badge -->
+            <div class="absolute top-0 right-0 bg-accent-amber text-bg-base font-mono text-[9px] font-bold uppercase tracking-widest px-3 py-1 rounded-bl">
+              SYSTEM ARCHITECT
+            </div>
+            
+            <div class="flex flex-col sm:flex-row gap-6 items-center sm:items-start">
+              <!-- Developer Icon -->
+              <div class="w-16 h-16 rounded border border-accent-amber/40 bg-accent-amber/10 flex items-center justify-center text-accent-amber shrink-0">
+                <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+                  <path d="M18 10h-1.26A8 8 0 1 0 9 20h9a5 5 0 0 0 0-10z"></path>
+                  <path d="M12 2v4"></path>
+                  <path d="M17 5l-2.5 2.5"></path>
+                  <path d="M7 5l2.5 2.5"></path>
+                </svg>
+              </div>
+
+              <!-- Details -->
+              <div class="text-center sm:text-left space-y-2">
+                <h3 class="text-lg font-mono font-bold tracking-wide uppercase text-text-primary">DIKSHANT</h3>
+                <p class="text-xs font-mono text-accent-amber">LEAD SOFTWARE ENGINEER & PLATFORM FOUNDER</p>
+                <p class="text-xs text-text-secondary leading-relaxed max-w-lg">
+                  Engineered Scholar Log as a brutalist, high-performance academic log repository. Built to optimize student workflow with persistent analytics, secure field-level data encryption, Cloudinary storage vaults, and high-speed Upstash Redis caching.
+                </p>
+              </div>
+            </div>
+          </div>
+
+          <!-- Technical Architecture Specs -->
+          <div>
+            <span class="mono-label text-text-secondary block mb-3">SYSTEM INFRASTRUCTURE CORE</span>
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div class="border border-border-default rounded bg-surface-1 p-4 flex items-center justify-between">
+                <div>
+                  <h4 class="font-mono text-xs text-text-secondary">UI/UX CORE ENGINE</h4>
+                  <p class="font-mono text-sm font-semibold mt-1">EJS SSR & Tailwind CSS v4</p>
+                </div>
+                <div class="w-2.5 h-2.5 rounded-full bg-success animate-pulse"></div>
+              </div>
+
+              <div class="border border-border-default rounded bg-surface-1 p-4 flex items-center justify-between">
+                <div>
+                  <h4 class="font-mono text-xs text-text-secondary">BACKEND RUNTIME</h4>
+                  <p class="font-mono text-sm font-semibold mt-1">Node.js / Express Core</p>
+                </div>
+                <div class="w-2.5 h-2.5 rounded-full bg-success animate-pulse"></div>
+              </div>
+
+              <div class="border border-border-default rounded bg-surface-1 p-4 flex items-center justify-between">
+                <div>
+                  <h4 class="font-mono text-xs text-text-secondary">PERSISTENT STORAGE VAULT</h4>
+                  <p class="font-mono text-sm font-semibold mt-1">MongoDB Atlas Cluster</p>
+                </div>
+                <div class="w-2.5 h-2.5 rounded-full bg-success animate-pulse"></div>
+              </div>
+
+              <div class="border border-border-default rounded bg-surface-1 p-4 flex items-center justify-between">
+                <div>
+                  <h4 class="font-mono text-xs text-text-secondary">CACHE PIPELINE & DRAFTS</h4>
+                  <p class="font-mono text-sm font-semibold mt-1">Upstash Redis Service</p>
+                </div>
+                <div class="w-2.5 h-2.5 rounded-full bg-success animate-pulse"></div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Signature Protocol -->
+          <div class="border border-border-default/50 rounded bg-surface-1/40 p-4 font-mono text-[10px] text-text-tertiary flex flex-col sm:flex-row justify-between items-center gap-2">
+            <span>PLATFORM PROTOCOL SIGNATURE: DE-A77-9691C95EC0</span>
+            <span class="text-accent-amber font-bold">✓ VERIFIED BY SYSTEM INTEGRITY CORE</span>
+          </div>
+
+        </div>
+      </section>
+
+    </div>
+  </div>
+</main>
+
+<script src="/js/settings.js?v=1.0.4"></script>

@@ -1,0 +1,56 @@
+<% layout('layout') %>
+<%- include('../partials/flash') %>
+
+<main class="min-h-screen flex">
+  <!-- Left: Hero -->
+  <div class="hidden lg:flex lg:w-1/2 relative bg-surface-1 flex-col justify-between overflow-hidden">
+    <div class="absolute inset-0 opacity-[0.06]" style="background-image: linear-gradient(rgba(240,165,0,0.3) 1px, transparent 1px), linear-gradient(90deg, rgba(240,165,0,0.3) 1px, transparent 1px); background-size: 60px 60px;"></div>
+    <div class="absolute inset-0 bg-gradient-to-t from-bg-base via-transparent to-transparent"></div>
+    <div class="flex-1 flex items-center justify-center"><div class="w-20 h-20 border-2 border-accent-amber rounded-lg flex items-center justify-center"><svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="#F0A500" stroke-width="1.5"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect><path d="M7 11V7a5 5 0 0 1 10 0v4"></path></svg></div></div>
+    <div class="relative z-10 p-8">
+      <h2 class="text-3xl font-semibold leading-tight mb-4">Industrial Grade Study Log</h2>
+      <p class="font-mono text-sm text-text-secondary">Precise data capture for the academic engineer.</p>
+    </div>
+  </div>
+
+  <!-- Right: Form -->
+  <div class="w-full lg:w-1/2 flex flex-col bg-bg-base">
+    <div class="flex items-center justify-between px-8 pt-6">
+      <a href="/" class="text-xl font-bold italic text-text-primary">Scholar Log</a>
+    </div>
+    <div class="flex-1 flex items-center justify-center px-8 lg:px-16">
+      <div class="w-full max-w-md page-enter">
+        <h1 class="text-2xl font-semibold mb-2">Sign in.</h1>
+        <p class="text-text-secondary text-sm mb-8">Access your study matrices.</p>
+        <form id="login-form" class="space-y-5" novalidate>
+          <div>
+            <label class="mono-label block mb-2">EMAIL ADDRESS</label>
+            <input type="email" name="email" placeholder="user@example.com" class="oxide-input" required autocomplete="email">
+          </div>
+          <div>
+            <div class="flex justify-between items-center mb-2">
+              <label class="mono-label">PASSWORD</label>
+              <a href="/forgot-password" class="font-mono text-xs text-text-secondary hover:text-accent-amber transition-colors">Forgot?</a>
+            </div>
+            <input type="password" name="password" placeholder="••••••••" class="oxide-input" required autocomplete="current-password">
+          </div>
+          <div id="form-error" class="hidden text-danger text-sm font-mono bg-danger-dim/20 border border-danger-dim rounded px-3 py-2"></div>
+          <button type="submit" class="btn-primary w-full justify-center !py-3.5 !text-sm" id="submit-btn">
+            <span id="btn-text">Authenticate</span><span class="dot"></span>
+          </button>
+        </form>
+        <div class="flex items-center gap-2 mt-6 text-text-tertiary">
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect><path d="M7 11V7a5 5 0 0 1 10 0v4"></path></svg>
+          <span class="font-mono text-[10px] tracking-wider">Zero-knowledge encryption</span>
+        </div>
+        <p class="text-text-secondary text-sm mt-6">No account? <a href="/register" class="text-text-primary underline underline-offset-4 hover:text-accent-amber transition-colors">Request access</a></p>
+      </div>
+    </div>
+    <div class="px-8 pb-6 flex flex-wrap items-center gap-x-6 gap-y-2 text-text-tertiary">
+      <span class="font-mono text-[10px]">&copy; <%= new Date().getFullYear() %> SCHOLAR LOG.</span>
+      <a href="#" class="font-mono text-[10px] hover:text-text-secondary transition-colors">Privacy</a>
+      <a href="#" class="font-mono text-[10px] hover:text-text-secondary transition-colors">Terms</a>
+    </div>
+  </div>
+</main>
+<script src="/js/auth.js"></script>

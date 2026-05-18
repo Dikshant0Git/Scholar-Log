@@ -1,0 +1,164 @@
+<% layout('layout') %>
+<%- include('partials/sidebar') %>
+<%- include('partials/flash') %>
+
+<main class="lg:pl-[220px] min-h-screen pt-14 lg:pt-0">
+  <!-- Topbar / Breadcrumb -->
+  <%- include('partials/topbar') %>
+
+  <div class="p-4 sm:p-6 max-w-[1400px] mx-auto space-y-6">
+    <!-- Draft Recovery Banner -->
+    <% if (draft && Object.keys(draft).length > 0) { %>
+    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 p-4 border border-accent-amber bg-accent-amber-10 rounded-[var(--radius-oxide)] scroll-reveal">
+      <div class="flex items-center gap-3">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--color-accent-amber)" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line><polyline points="10 9 9 9 8 9"></polyline></svg>
+        <div>
+          <h4 class="text-sm font-medium text-accent-amber">Draft Recovered</h4>
+          <p class="text-xs text-text-secondary mt-0.5 font-mono">Unsaved entry from previous session.</p>
+        </div>
+      </div>
+      <div class="flex items-center gap-3">
+        <button onclick="clearDraft()" class="font-mono text-xs text-text-tertiary hover:text-text-primary transition-colors">DISCARD</button>
+        <a href="/entries/new" class="btn-amber !py-1.5 !px-3 !text-xs">Resume Edit</a>
+      </div>
+    </div>
+    <% } %>
+
+    <% if (!user.settings || user.settings.showStats !== false) { %>
+    <!-- KPI Metrics Row -->
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 stagger">
+      <!-- ... (KPI Cards) ... -->
+      <div class="oxide-card scroll-reveal">
+        <span class="mono-label-secondary block mb-3">TOTAL HOURS LOGGED</span>
+        <div class="flex items-end gap-3">
+          <span class="data-lg"><%= stats ? stats.totalHours : '0.0' %></span>
+          <span class="font-mono text-xs text-text-tertiary mb-1">hrs</span>
+        </div>
+      </div>
+      <div class="oxide-card scroll-reveal">
+        <span class="mono-label-secondary block mb-3">TOTAL ENTRIES</span>
+        <div class="flex items-end gap-3">
+          <span class="data-lg"><%= stats ? stats.totalEntries : '0' %></span>
+        </div>
+      </div>
+      <div class="oxide-card border-accent-amber/30 bg-surface-1 scroll-reveal relative overflow-hidden">
+        <div class="absolute top-0 right-0 p-3 opacity-20">
+          <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="var(--color-accent-amber)" stroke-width="1.5"><polyline points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"></polyline></svg>
+        </div>
+        <span class="mono-label text-accent-amber block mb-3 relative z-10">CURRENT STREAK</span>
+        <div class="flex items-end gap-3 relative z-10">
+          <span class="data-lg text-accent-amber"><%= stats ? stats.streak : '0' %></span>
+          <span class="font-mono text-xs text-accent-amber/70 mb-1">days</span>
+        </div>
+      </div>
+      <div class="oxide-card scroll-reveal">
+        <span class="mono-label-secondary block mb-3">THIS WEEK</span>
+        <div class="flex items-end gap-3">
+          <span class="data-lg"><%= stats ? stats.thisWeekHours : '0.0' %></span>
+          <span class="font-mono text-xs text-text-tertiary mb-1">hrs</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Charts Row -->
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+      <div class="oxide-card lg:col-span-2 scroll-reveal">
+        <div class="flex items-center justify-between mb-6">
+          <span class="mono-label-secondary">WEEKLY ACTIVITY MATRIX</span>
+        </div>
+        <div class="h-[280px] w-full relative">
+          <canvas id="weeklyChart"></canvas>
+        </div>
+      </div>
+      <div class="oxide-card scroll-reveal">
+        <div class="flex items-center justify-between mb-6">
+          <span class="mono-label-secondary">COMPLEXITY DISTRIBUTION</span>
+        </div>
+        <div class="h-[200px] w-full relative flex items-center justify-center">
+          <canvas id="mixChart"></canvas>
+          <div class="absolute inset-0 flex flex-col items-center justify-center pointer-events-none mt-2">
+            <span class="data-lg text-2xl"><%= stats ? stats.totalEntries : '0' %></span>
+            <span class="font-mono text-[10px] text-text-tertiary mt-1">TOTAL</span>
+          </div>
+        </div>
+        <div class="mt-6 space-y-2">
+          <% 
+            const diffMap = { 'low': { label: 'LOW', color: 'bg-success' }, 'medium': { label: 'NOMINAL', color: 'bg-accent-amber' }, 'high': { label: 'HIGH', color: 'bg-danger' } };
+            const prodData = stats ? stats.productivity : [];
+          %>
+          <% ['low', 'medium', 'high'].forEach(diff => { 
+               const item = prodData.find(p => p._id === diff);
+               const count = item ? item.count : 0;
+               const percent = stats && stats.totalEntries ? Math.round((count / stats.totalEntries) * 100) : 0;
+          %>
+          <div class="flex items-center justify-between">
+            <div class="flex items-center gap-2">
+              <span class="w-2 h-2 rounded-full <%= diffMap[diff].color %>"></span>
+              <span class="font-mono text-[11px] text-text-secondary"><%= diffMap[diff].label %></span>
+            </div>
+            <span class="font-mono text-[11px] text-text-primary"><%= percent %>% (<%= count %>)</span>
+          </div>
+          <% }) %>
+        </div>
+      </div>
+    </div>
+    <% } %>
+
+    <div class="oxide-card scroll-reveal">
+      <div class="flex items-center justify-between mb-6">
+        <span class="mono-label-secondary">RECENT DATA LOGS</span>
+        <a href="/entries" class="font-mono text-[11px] text-text-secondary hover:text-text-primary transition-colors">VIEW ALL →</a>
+      </div>
+      
+      <div class="overflow-x-auto">
+        <table class="w-full text-left border-collapse whitespace-nowrap">
+          <thead>
+            <tr class="border-b border-border-default">
+              <th class="pb-3 pr-4 font-mono text-[10px] text-text-tertiary font-normal w-24">DATE</th>
+              <th class="pb-3 px-4 font-mono text-[10px] text-text-tertiary font-normal">SUBJECT</th>
+              <th class="pb-3 px-4 font-mono text-[10px] text-text-tertiary font-normal text-center w-24">DURATION</th>
+              <th class="pb-3 px-4 font-mono text-[10px] text-text-tertiary font-normal text-center w-28">COMPLEXITY</th>
+              <th class="pb-3 pl-4 font-mono text-[10px] text-text-tertiary font-normal text-right w-24">STATUS</th>
+            </tr>
+          </thead>
+          <tbody class="text-sm">
+            <% if (stats && stats.recentTopics && stats.recentTopics.length > 0) { %>
+              <% stats.recentTopics.forEach(entry => { %>
+                <tr class="border-b border-border-default/50 table-row cursor-pointer" onclick="window.location.href='/entries/<%= entry._id %>'">
+                  <td class="py-3 pr-4 font-mono text-[11px] text-text-secondary"><%= new Date(entry.createdAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric' }) %></td>
+                  <td class="py-3 px-4 font-medium text-text-primary truncate max-w-[200px]"><%= entry.title %></td>
+                  <td class="py-3 px-4 font-mono text-[11px] text-text-secondary text-center"><%= entry.duration %>m</td>
+                  <td class="py-3 px-4 text-center">
+                    <span class="font-mono text-[10px] uppercase tracking-wider badge-<%= entry.difficulty %>"><%= entry.difficulty %></span>
+                  </td>
+                  <td class="py-3 pl-4 text-right">
+                    <span class="badge badge-<%= entry.status %>"><%= entry.status %></span>
+                  </td>
+                </tr>
+              <% }) %>
+            <% } else { %>
+              <tr>
+                <td colspan="5" class="py-8 text-center text-text-tertiary font-mono text-xs border-b border-border-default/50">NO ENTRIES FOUND.</td>
+              </tr>
+            <% } %>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</main>
+
+<!-- Dashboard Scripts -->
+<script type="application/json" id="dashboard-data">
+  <%- JSON.stringify(stats || null) %>
+</script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+  try {
+    const dataEl = document.getElementById('dashboard-data');
+    if (dataEl && dataEl.textContent.trim()) {
+      window.DASHBOARD_DATA = JSON.parse(dataEl.textContent);
+    }
+  } catch(e) { console.error('Failed to parse dashboard data', e); }
+</script>
+<script src="/js/dashboard.js"></script>

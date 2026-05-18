@@ -1,0 +1,29 @@
+<!-- Theme Initialization (IIFE to prevent FOUC) -->
+<script>
+  (function() {
+    const userTheme = '<%= (typeof user !== "undefined" && user && user.settings && user.settings.preferredTheme) ? user.settings.preferredTheme : "system" %>';
+    let theme = 'dark';
+    if (userTheme === 'light') {
+      theme = 'light';
+    } else if (userTheme === 'system') {
+      theme = window.matchMedia('(prefers-color-scheme: light)').matches ? 'light' : 'dark';
+    }
+    document.documentElement.setAttribute('data-theme', theme);
+  })();
+</script>
+
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="description" content="<%= typeof metaDescription !== 'undefined' ? metaDescription : 'A high-density, terminal-adjacent logging system engineered for academic rigor. Encrypted. Precise. Reliable.' %>">
+<title><%= typeof pageTitle !== 'undefined' ? pageTitle + ' — Scholar Log' : 'Scholar Log — Academic Data Precision' %></title>
+
+<!-- Fonts -->
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+
+<!-- TailwindCSS Compiled -->
+<link rel="stylesheet" href="/css/styles.css?v=1.0.1">
+
+<!-- Favicon -->
+<link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect width='32' height='32' rx='4' fill='%23F0A500'/><text x='50%25' y='55%25' dominant-baseline='middle' text-anchor='middle' font-size='18' font-family='monospace' fill='%23000'>S</text></svg>">

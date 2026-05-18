@@ -1,0 +1,18 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <%- include('partials/head') %>
+</head>
+<body class="bg-bg-base text-text-primary antialiased min-h-screen">
+  <%- body %>
+  <%- include('partials/modals') %>
+
+  <!-- Global JS -->
+  <script src="/js/app.js?v=1.0.4"></script>
+
+  <%/* Page-specific scripts injected via block */ %>
+  <% if (typeof scripts !== 'undefined') { %>
+    <%- scripts %>
+  <% } %>
+</body>
+</html>

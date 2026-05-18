@@ -1,0 +1,579 @@
+/* ── Google Fonts ── */
+@import url('https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap');
+
+@import "tailwindcss";
+
+@source "../views/**/*.ejs";
+@source "../public/**/*.js";
+
+/* ── Oxide Design Tokens ── */
+@theme {
+  --color-bg-base: #0C0C0F;
+  --color-surface-1: #111116;
+  --color-surface-2: #18181E;
+  --color-surface-3: #1E1E26;
+  --color-border-default: #26262E;
+  --color-border-emphasis: #3C3C48;
+  --color-border-strong: #52525F;
+  --color-text-primary: #F0EDE6;
+  --color-text-secondary: #8C8A97;
+  --color-text-tertiary: #4E4C58;
+  --color-accent-amber: #F0A500;
+  --color-accent-dim: #7A5200;
+  --color-accent-amber-10: rgba(240, 165, 0, 0.10);
+  --color-success: #22C55E;
+  --color-success-dim: #14532D;
+  --color-warning: #F59E0B;
+  --color-warning-dim: #78350F;
+  --color-danger: #EF4444;
+  --color-danger-dim: #7F1D1D;
+
+  --font-sans: 'Geist', 'Inter', system-ui, -apple-system, sans-serif;
+  --font-mono: 'JetBrains Mono', 'Geist Mono', 'Fira Code', monospace;
+
+  --radius-oxide: 4px;
+  --radius-modal: 6px;
+}
+
+/* ── Base Resets ── */
+@layer base {
+  * {
+    scrollbar-width: thin;
+    scrollbar-color: var(--color-border-emphasis) transparent;
+  }
+
+  ::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
+  }
+
+  ::-webkit-scrollbar-track {
+    background: transparent;
+  }
+
+  ::-webkit-scrollbar-thumb {
+    background: var(--color-border-emphasis);
+    border-radius: 3px;
+  }
+
+  ::selection {
+    background: rgba(240, 165, 0, 0.25);
+    color: var(--color-text-primary);
+  }
+
+  body {
+    background-color: var(--color-bg-base);
+    color: var(--color-text-primary);
+    font-family: var(--font-sans);
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+
+  /* ── Enforce Browser Pointer Defaults ── */
+  button, 
+  [type="button"], 
+  [type="reset"], 
+  [type="submit"], 
+  [role="button"], 
+  select, 
+  a, 
+  .cursor-pointer {
+    cursor: pointer !important;
+  }
+
+  input, textarea {
+    cursor: text;
+  }
+
+  input, textarea, select {
+    font-family: var(--font-sans);
+  }
+
+  input::placeholder,
+  textarea::placeholder {
+    color: var(--color-text-tertiary);
+  }
+}
+
+/* ── Oxide Component Classes ── */
+@layer components {
+  /* ── Mono Label Pattern ── */
+  .mono-label {
+    font-family: var(--font-mono);
+    font-size: 11px;
+    font-weight: 500;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--color-text-tertiary);
+  }
+
+  .mono-label-secondary {
+    font-family: var(--font-mono);
+    font-size: 11px;
+    font-weight: 500;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--color-text-secondary);
+  }
+
+  /* ── Data Display ── */
+  .data-lg {
+    font-family: var(--font-mono);
+    font-size: 32px;
+    font-weight: 500;
+    line-height: 1;
+    color: var(--color-text-primary);
+  }
+
+  .data-md {
+    font-family: var(--font-mono);
+    font-size: 14px;
+    font-weight: 500;
+    line-height: 1;
+    color: var(--color-text-primary);
+  }
+
+  .data-sm {
+    font-family: var(--font-mono);
+    font-size: 12px;
+    font-weight: 400;
+    line-height: 1;
+    color: var(--color-text-secondary);
+  }
+
+  /* ── Buttons ── */
+  .btn-primary {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    padding: 12px 24px;
+    background: var(--color-surface-2);
+    border: 1px solid var(--color-border-emphasis);
+    border-radius: var(--radius-oxide);
+    color: var(--color-text-primary);
+    font-family: var(--font-mono);
+    font-size: 14px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: border-color 150ms, transform 100ms;
+  }
+
+  .btn-primary:hover {
+    border-color: var(--color-border-strong);
+  }
+
+  .btn-primary:active {
+    transform: scale(0.98);
+  }
+
+  .btn-primary .dot {
+    display: inline-block;
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: var(--color-accent-amber);
+  }
+
+  .btn-secondary {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    padding: 12px 24px;
+    background: transparent;
+    border: 1px solid var(--color-border-default);
+    border-radius: var(--radius-oxide);
+    color: var(--color-text-primary);
+    font-family: var(--font-mono);
+    font-size: 14px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: border-color 150ms, transform 100ms;
+  }
+
+  .btn-secondary:hover {
+    border-color: var(--color-border-emphasis);
+  }
+
+  .btn-secondary:active {
+    transform: scale(0.98);
+  }
+
+  .btn-danger {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    padding: 12px 24px;
+    background: transparent;
+    border: 1px solid var(--color-danger-dim);
+    border-radius: var(--radius-oxide);
+    color: var(--color-danger);
+    font-family: var(--font-mono);
+    font-size: 14px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: border-color 150ms, transform 100ms;
+  }
+
+  .btn-danger:hover {
+    border-color: var(--color-danger);
+  }
+
+  .btn-danger:active {
+    transform: scale(0.98);
+  }
+
+  .btn-amber {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    padding: 12px 24px;
+    background: var(--color-accent-amber);
+    border: 1px solid var(--color-accent-amber);
+    border-radius: var(--radius-oxide);
+    color: #000;
+    font-family: var(--font-mono);
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: opacity 150ms, transform 100ms;
+  }
+
+  .btn-amber:hover {
+    opacity: 0.9;
+  }
+
+  .btn-amber:active {
+    transform: scale(0.98);
+  }
+
+  /* ── Input Fields ── */
+  .oxide-input {
+    width: 100%;
+    padding: 12px 16px;
+    background: var(--color-surface-2);
+    border: 1px solid var(--color-border-default);
+    border-radius: var(--radius-oxide);
+    color: var(--color-text-primary);
+    font-size: 14px;
+    transition: border-color 150ms;
+    outline: none;
+  }
+
+  .oxide-input:focus {
+    border-color: var(--color-accent-amber);
+  }
+
+  .oxide-input:hover:not(:focus) {
+    border-color: var(--color-border-emphasis);
+  }
+
+  .oxide-textarea {
+    width: 100%;
+    padding: 16px;
+    background: var(--color-surface-2);
+    border: 1px solid var(--color-border-default);
+    border-radius: var(--radius-oxide);
+    color: var(--color-text-primary);
+    font-size: 14px;
+    min-height: 200px;
+    resize: vertical;
+    transition: border-color 150ms;
+    outline: none;
+  }
+
+  .oxide-textarea:focus {
+    border-color: var(--color-accent-amber);
+  }
+
+  /* ── Cards ── */
+  .oxide-card {
+    background: var(--color-surface-1);
+    border: 1px solid var(--color-border-default);
+    border-radius: var(--radius-oxide);
+    padding: 16px;
+  }
+
+  .oxide-card-hover {
+    background: var(--color-surface-1);
+    border: 1px solid var(--color-border-default);
+    border-radius: var(--radius-oxide);
+    padding: 16px;
+    transition: background-color 150ms, border-color 150ms;
+  }
+
+  .oxide-card-hover:hover {
+    background: var(--color-surface-2);
+    border-color: var(--color-border-emphasis);
+  }
+
+  /* ── Status Badges ── */
+  .badge {
+    display: inline-flex;
+    align-items: center;
+    padding: 2px 8px;
+    border-radius: 3px;
+    font-family: var(--font-mono);
+    font-size: 11px;
+    font-weight: 500;
+    letter-spacing: 0.02em;
+    text-transform: capitalize;
+  }
+
+  .badge-completed {
+    background: var(--color-success-dim);
+    color: var(--color-success);
+    border: 1px solid var(--color-success);
+  }
+
+  .badge-pending {
+    background: rgba(140, 138, 151, 0.1);
+    color: var(--color-text-secondary);
+    border: 1px solid var(--color-border-emphasis);
+  }
+
+  .badge-in-progress {
+    background: var(--color-warning-dim);
+    color: var(--color-warning);
+    border: 1px solid var(--color-warning);
+  }
+
+  .badge-easy {
+    color: var(--color-success);
+  }
+
+  .badge-medium {
+    color: var(--color-accent-amber);
+  }
+
+  .badge-hard {
+    color: var(--color-danger);
+  }
+
+  /* ── Progress Bars ── */
+  .progress-track {
+    width: 100%;
+    height: 4px;
+    background: var(--color-border-default);
+    border-radius: 2px;
+    overflow: hidden;
+  }
+
+  .progress-fill {
+    height: 100%;
+    border-radius: 2px;
+    transition: width 300ms ease-out;
+  }
+
+  /* ── OTP Inputs ── */
+  .otp-box {
+    width: 52px;
+    height: 60px;
+    text-align: center;
+    font-family: var(--font-mono);
+    font-size: 24px;
+    font-weight: 500;
+    background: var(--color-surface-2);
+    border: 1px solid var(--color-border-default);
+    border-radius: var(--radius-oxide);
+    color: var(--color-text-primary);
+    outline: none;
+    transition: border-color 150ms;
+  }
+
+  .otp-box:focus {
+    border-color: var(--color-accent-amber);
+  }
+
+  /* ── Table Rows ── */
+  .table-row {
+    transition: background-color 150ms;
+  }
+
+  .table-row:hover {
+    background: var(--color-surface-2);
+  }
+
+  /* ── Segmented Control ── */
+  .segment-group {
+    display: flex;
+    background: var(--color-bg-base);
+    border: 1px solid var(--color-border-default);
+    border-radius: var(--radius-oxide);
+    overflow: hidden;
+  }
+
+  .segment-item {
+    flex: 1;
+    padding: 8px 16px;
+    text-align: center;
+    font-family: var(--font-mono);
+    font-size: 13px;
+    color: var(--color-text-secondary);
+    cursor: pointer;
+    transition: all 150ms;
+    border: none;
+    background: transparent;
+  }
+
+  .segment-item:not(:last-child) {
+    border-right: 1px solid var(--color-border-default);
+  }
+
+  .segment-item.active {
+    background: var(--color-surface-2);
+    color: var(--color-text-primary);
+    border-color: var(--color-border-emphasis);
+  }
+
+  .segment-item:hover:not(.active) {
+    background: var(--color-surface-1);
+  }
+
+  /* ── Dropzone ── */
+  .dropzone {
+    border: 1px dashed var(--color-border-emphasis);
+    border-radius: var(--radius-oxide);
+    padding: 32px;
+    text-align: center;
+    transition: border-color 200ms, background-color 200ms;
+    cursor: pointer;
+  }
+
+  .dropzone:hover,
+  .dropzone.dragover {
+    border-color: var(--color-accent-amber);
+    background: var(--color-accent-amber-10);
+  }
+
+  /* ── Toggle Switch ── */
+  .toggle {
+    position: relative;
+    width: 44px;
+    height: 24px;
+    background: var(--color-border-default);
+    border-radius: 12px;
+    cursor: pointer;
+    transition: background-color 200ms;
+  }
+
+  .toggle.active {
+    background: var(--color-accent-amber);
+  }
+
+  .toggle::after {
+    content: '';
+    position: absolute;
+    top: 2px;
+    left: 2px;
+    width: 20px;
+    height: 20px;
+    background: var(--color-text-primary);
+    border-radius: 50%;
+    transition: transform 200ms;
+  }
+
+  .toggle.active::after {
+    transform: translateX(20px);
+  }
+
+  /* ── Scrollable Dropdowns ── */
+  .dropdown-menu {
+    max-height: 250px !important;
+    overflow-y: auto !important;
+  }
+}
+
+/* ── Animations ── */
+@layer utilities {
+  .scroll-reveal {
+    opacity: 0;
+    transform: translateY(16px);
+    transition: opacity 500ms ease-out, transform 500ms ease-out;
+  }
+
+  .scroll-reveal.revealed {
+    opacity: 1;
+    transform: translateY(0);
+  }
+
+  /* Stagger delays for children */
+  .stagger > *:nth-child(1) { transition-delay: 0ms; }
+  .stagger > *:nth-child(2) { transition-delay: 60ms; }
+  .stagger > *:nth-child(3) { transition-delay: 120ms; }
+  .stagger > *:nth-child(4) { transition-delay: 180ms; }
+  .stagger > *:nth-child(5) { transition-delay: 240ms; }
+  .stagger > *:nth-child(6) { transition-delay: 300ms; }
+  .stagger > *:nth-child(7) { transition-delay: 360ms; }
+  .stagger > *:nth-child(8) { transition-delay: 420ms; }
+
+  .fade-in {
+    animation: fadeIn 300ms ease-out forwards;
+  }
+
+  .page-enter {
+    animation: pageEnter 400ms ease-out forwards;
+  }
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes pageEnter {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes pulse-amber {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.4; }
+}
+
+.pulse-amber {
+  animation: pulse-amber 1.5s ease-in-out infinite;
+}
+
+/* ── "Soothing Light" Mode (Technical Paper) CSS Overrides ── */
+[data-theme="light"] {
+  --color-bg-base: #F9F9F9;
+  --color-surface-1: #FFFFFF;
+  --color-surface-2: #F3F3F3;
+  --color-surface-3: #EEEEEE;
+  --color-border-default: #DADADA;
+  --color-border-emphasis: #C5C5C5;
+  --color-border-strong: #B0B0B0;
+  --color-text-primary: #2D2D32;
+  --color-text-secondary: #5E5E63;
+  --color-text-tertiary: #8A8A8F;
+  --color-accent-amber: #F5A623;
+  --color-accent-amber-10: rgba(245, 166, 35, 0.10);
+  --color-success: #22C55E;
+  --color-success-dim: #DCFCE7;
+  --color-warning: #F59E0B;
+  --color-warning-dim: #FEF3C7;
+  --color-danger: #EF4444;
+  --color-danger-dim: #FEE2E2;
+}
+
+/* ── Technical Checked States for Custom Theme Radio Buttons ── */
+input[name="preferredTheme"]:checked + div {
+  border-color: var(--color-accent-amber) !important;
+}
+input[name="preferredTheme"]:checked + div .rounded-full.border {
+  border-color: var(--color-accent-amber) !important;
+  background-color: var(--color-accent-amber) !important;
+}
+input[name="preferredTheme"]:checked + div .rounded-full.border > div {
+  display: block !important;
+}
