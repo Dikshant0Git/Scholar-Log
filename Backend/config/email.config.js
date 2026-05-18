@@ -1,96 +1,47 @@
-const nodemailer = require('nodemailer');
+// Mailgun REST API Email Client (Native implementation using built-in fetch)
+const mailgunApiKey = process.env.MAIL_GUN_API_KEY;
+const mailgunDomain = process.env.MAIL_GUN_DOMAIN;
 
-// 1. Validate Credentials and Settings
-const smtpHost = process.env.SMTP_HOST;
-const smtpPort = parseInt(process.env.SMTP_PORT || '587', 10);
-const smtpUser = process.env.SMTP_USER;
-const smtpPass = process.env.SMTP_PASS;
+const isMailgunConfigured = !!(mailgunApiKey && mailgunDomain);
+const isMockTransporter = !isMailgunConfigured;
 
-const isSmtpConfigured = !!(smtpHost && smtpUser && smtpPass);
+const fromEmail = process.env.SMTP_FROM || `no-reply@${mailgunDomain || 'scholarlog.local'}`;
 
-let transporter;
-let isMockTransporter = false;
-
-// Sender normalization: Gmail/Standard format checks
-const rawFromEmail = process.env.SMTP_FROM || smtpUser || 'no-reply@scholarlog.local';
-const fromEmail = (rawFromEmail && !rawFromEmail.includes('@') && smtpHost === 'smtp.gmail.com')
-    ? `${rawFromEmail}@gmail.com`
-    : rawFromEmail;
-
-if (isSmtpConfigured) {
-    console.log(`[EMAIL_SERVICE] Initializing SMTP connection pool for ${smtpHost}:${smtpPort} (User: ${fromEmail})...`);
-    
-    // Normalize Gmail username if it's lacking domain part
-    const authUser = (smtpUser && !smtpUser.includes('@') && smtpHost === 'smtp.gmail.com')
-        ? `${smtpUser}@gmail.com`
-        : smtpUser;
-
-    transporter = nodemailer.createTransport({
-        host: smtpHost,
-        port: smtpPort,
-        secure: smtpPort === 465, // True only for SMTPS port 465
-        pool: true,               // Reuse SMTP connections for throughput & efficiency
-        maxConnections: 5,        // Avoid triggering abuse/rate limit bans
-        maxMessages: 100,         // Refresh connection after 100 messages
-        rateDelta: 1000,
-        rateLimit: 5,
-        connectionTimeout: 10000, // 10s: network handshake timeout
-        greetingTimeout: 10000,   // 10s: greeting from server timeout
-        socketTimeout: 15000,     // 15s: inactivity timeout on socket
-        dnsTimeout: 10000,        // 10s: DNS resolution timeout
-        auth: {
-            user: authUser,
-            pass: smtpPass,
-        },
-        tls: {
-            // Reject unauthorized certificates in production, allow development fallbacks
-            rejectUnauthorized: process.env.NODE_ENV === 'production',
-            ciphers: 'SSLv3'
-        }
-    });
-
-    // Verify SMTP connection on startup asynchronously
-    transporter.verify()
-        .then(() => {
-            console.log('[EMAIL_SERVICE] SMTP connection pool successfully verified and ready.');
-        })
-        .catch((err) => {
-            console.error('[EMAIL_SERVICE] SMTP connection verification failed!');
-            console.error(`[EMAIL_SERVICE] Error details: ${err.message}`);
-            console.error('[EMAIL_SERVICE] Diagnostic Check: Please verify SMTP_HOST, SMTP_PORT, SMTP_USER, and SMTP_PASS on Render.');
-            console.error('[EMAIL_SERVICE] Fallback active: Node will attempt reconnects dynamically upon sending.');
-        });
+if (isMailgunConfigured) {
+    console.log(`[EMAIL_SERVICE] Initializing Mailgun API transport for domain ${mailgunDomain}...`);
 } else {
-    isMockTransporter = true;
-    console.warn('[EMAIL_SERVICE] WARNING: SMTP credentials are not fully configured.');
+    console.warn('[EMAIL_SERVICE] WARNING: Mailgun credentials are not fully configured.');
     console.warn('[EMAIL_SERVICE] Fallback initialized: Using mock/console email logger.');
-    console.warn('[EMAIL_SERVICE] To enable real emails, configure: SMTP_HOST, SMTP_USER, SMTP_PASS, and optionally SMTP_PORT / SMTP_FROM.');
-    
-    transporter = {
-        sendMail: async (options) => {
-            console.log('\n=========================================');
-            console.log('[EMAIL_SERVICE] [MOCK SENDMAIL]');
-            console.log(`FROM:    ${options.from}`);
-            console.log(`TO:      ${options.to}`);
-            console.log(`SUBJECT: ${options.subject}`);
-            console.log(`TEXT:    ${options.text}`);
-            console.log('------------------ HTML -----------------');
-            const otpMatch = options.text.match(/\b\d{6}\b/);
-            if (otpMatch) {
-                console.log(`[OTP FOUND] Verification Code: ${otpMatch[0]}`);
-            } else {
-                console.log(options.html ? 'HTML content present (see full log in debug)' : '(No HTML content)');
-            }
-            console.log('=========================================\n');
-            
-            return {
-                messageId: `mock-${Date.now()}-${Math.random().toString(36).substring(2, 9)}`,
-                response: '250 OK: Mock email successfully logged'
-            };
-        },
-        verify: async () => true
-    };
+    console.warn('[EMAIL_SERVICE] To enable real emails, configure: MAIL_GUN_API_KEY and MAIL_GUN_DOMAIN in your .env file.');
 }
+
+// Compatibility transporter interface for health checking
+const transporter = {
+    verify: async () => {
+        if (isMockTransporter) {
+            return true; // Mock transport is always verified
+        }
+        
+        try {
+            const auth = Buffer.from(`api:${mailgunApiKey}`).toString('base64');
+            const response = await fetch(`https://api.mailgun.net/v3/domains/${mailgunDomain}`, {
+                headers: {
+                    'Authorization': `Basic ${auth}`
+                }
+            });
+            
+            if (!response.ok) {
+                const errorData = await response.json().catch(() => ({ message: response.statusText }));
+                throw new Error(`Mailgun API returned ${response.status}: ${errorData.message}`);
+            }
+            
+            return true;
+        } catch (err) {
+            console.error(`[EMAIL_SERVICE] Mailgun connectivity check failed: ${err.message}`);
+            throw err;
+        }
+    }
+};
 
 // Truly fire-and-forget — never blocks, never throws unhandled rejections
 const sendEmailAsync = (to, subject, text) => {
@@ -178,42 +129,72 @@ const sendEmailAsync = (to, subject, text) => {
     </html>
     `;
 
-    const mailOptions = {
-        from: `"Scholar Log" <${fromEmail}>`,
-        to,
-        subject,
-        text,
-        html,
-    };
-
     const maxRetries = 3;
     const initialDelay = 1000; // 1 second base delay
 
     const executeSend = (attempt = 1) => {
-        transporter.sendMail(mailOptions)
-            .then((info) => {
-                if (isMockTransporter) {
-                    console.log(`[EMAIL_SERVICE] [MOCK] Email logged successfully (ID: ${info.messageId})`);
-                } else {
-                    console.log(`[EMAIL_SERVICE] Email successfully dispatched to ${to} (Attempt ${attempt}/${maxRetries}, MsgID: ${info.messageId})`);
-                }
-            })
-            .catch((err) => {
-                console.error(`[EMAIL_SERVICE] Attempt ${attempt} to send email to ${to} failed: ${err.message}`);
-                
-                if (attempt < maxRetries) {
-                    // Exponential delay calculation: delay = base * 2^(attempt-1) + jitter
-                    const delay = initialDelay * Math.pow(2, attempt - 1) + Math.random() * 500;
-                    console.log(`[EMAIL_SERVICE] Retrying dispatch in ${Math.round(delay)}ms...`);
-                    setTimeout(() => executeSend(attempt + 1), delay);
-                } else {
-                    console.error(`[EMAIL_SERVICE] CRITICAL: All ${maxRetries} attempts to send email to ${to} have FAILED.`);
-                    console.error('[EMAIL_SERVICE] Diagnostic Error Trace:', err);
-                }
-            });
+        if (isMockTransporter) {
+            console.log('\n=========================================');
+            console.log('[EMAIL_SERVICE] [MOCK SENDMAIL]');
+            console.log(`FROM:    Scholar Log <${fromEmail}>`);
+            console.log(`TO:      ${to}`);
+            console.log(`SUBJECT: ${subject}`);
+            console.log(`TEXT:    ${text}`);
+            console.log('------------------ HTML -----------------');
+            if (otpMatch) {
+                console.log(`[OTP FOUND] Verification Code: ${otp}`);
+            } else {
+                console.log('(No HTML content/No OTP)');
+            }
+            console.log('=========================================\n');
+            
+            console.log(`[EMAIL_SERVICE] [MOCK] Email logged successfully (ID: mock-${Date.now()})`);
+            return;
+        }
+
+        // Real Mailgun REST API Send
+        const url = `https://api.mailgun.net/v3/${mailgunDomain}/messages`;
+        const auth = Buffer.from(`api:${mailgunApiKey}`).toString('base64');
+        const body = new URLSearchParams();
+        body.append('from', `Scholar Log <${fromEmail}>`);
+        body.append('to', to);
+        body.append('subject', subject);
+        body.append('text', text);
+        body.append('html', html);
+
+        fetch(url, {
+            method: 'POST',
+            headers: {
+                'Authorization': `Basic ${auth}`,
+                'Content-Type': 'application/x-www-form-urlencoded'
+            },
+            body: body.toString()
+        })
+        .then(async (response) => {
+            if (!response.ok) {
+                const errorData = await response.json().catch(() => ({ message: response.statusText }));
+                throw new Error(`Mailgun API ${response.status}: ${errorData.message}`);
+            }
+            return response.json();
+        })
+        .then((data) => {
+            console.log(`[EMAIL_SERVICE] Email successfully dispatched to ${to} (Attempt ${attempt}/${maxRetries}, MsgID: ${data.id})`);
+        })
+        .catch((err) => {
+            console.error(`[EMAIL_SERVICE] Attempt ${attempt} to send email to ${to} failed: ${err.message}`);
+            
+            if (attempt < maxRetries) {
+                const delay = initialDelay * Math.pow(2, attempt - 1) + Math.random() * 500;
+                console.log(`[EMAIL_SERVICE] Retrying dispatch in ${Math.round(delay)}ms...`);
+                setTimeout(() => executeSend(attempt + 1), delay);
+            } else {
+                console.error(`[EMAIL_SERVICE] CRITICAL: All ${maxRetries} attempts to send email to ${to} have FAILED.`);
+                console.error('[EMAIL_SERVICE] Diagnostic Error Trace:', err);
+            }
+        });
     };
 
-    // Execute fire-and-forget sending process
+    // Execute sending process asynchronously (fire-and-forget)
     executeSend();
 };
 

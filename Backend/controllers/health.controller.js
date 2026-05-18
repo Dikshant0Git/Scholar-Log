@@ -45,11 +45,11 @@ async function checkRedis() {
     }
 }
 
-async function checkSMTP() {
+async function checkEmailService() {
     const start = Date.now();
     try {
         await transporter.verify();
-        return { status: 'UP', latencyMs: Date.now() - start, detail: 'SMTP reachable' };
+        return { status: 'UP', latencyMs: Date.now() - start, detail: 'Mailgun API reachable' };
     } catch (e) {
         return { status: 'DOWN', latencyMs: null, detail: e.message };
     }
@@ -173,7 +173,7 @@ function buildHTML(data) {
   </div>
 
   <div class="note">
-    ℹ️ External service checks (SMTP, Cloudinary) are <strong>cached for 60 seconds</strong> to avoid unnecessary network calls on every health ping. MongoDB is always checked live.
+    ℹ️ External service checks (Email API, Cloudinary) are <strong>cached for 60 seconds</strong> to avoid unnecessary network calls on every health ping. MongoDB is always checked live.
   </div>
 
   <div class="card">
@@ -260,18 +260,18 @@ const getHealth = async (req, res) => {
     const start = Date.now();
 
     // MongoDB is always live — it's local and fast (~1ms)
-    // SMTP and Cloudinary are cached for 60s — they involve external network calls
-    const [mongo, redisCheck, smtp, cloud] = await Promise.all([
+    // Email API and Cloudinary are cached for 60s — they involve external network calls
+    const [mongo, redisCheck, emailService, cloud] = await Promise.all([
         checkMongo(),
         checkRedis(),
-        cachedCheck('smtp', checkSMTP),
+        cachedCheck('emailService', checkEmailService),
         cachedCheck('cloudinary', checkCloudinary),
     ]);
 
     const checks = {
         'MongoDB Atlas': mongo,
         'Redis (Upstash)': redisCheck,
-        'SMTP (Gmail)': smtp,
+        'Mailgun API': emailService,
         'Cloudinary CDN': cloud,
     };
 
