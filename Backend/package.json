@@ -14,6 +14,7 @@
   "license": "ISC",
   "description": "",
   "dependencies": {
+    "@tailwindcss/cli": "^4.3.0",
     "bcrypt": "^6.0.0",
     "cloudinary": "^2.10.0",
     "compression": "^1.8.1",
@@ -29,13 +30,15 @@
     "mongoose": "^9.6.2",
     "multer": "^2.1.1",
     "node-cache": "^5.1.2",
-    "nodemailer": "^8.0.7"
+    "nodemailer": "^8.0.7",
+    "tailwindcss": "^4.3.0"
   },
   "devDependencies": {
-    "@tailwindcss/cli": "^4.3.0",
     "autocannon": "^8.0.0",
     "concurrently": "^9.2.1",
-    "nodemon": "^3.1.14",
-    "tailwindcss": "^4.3.0"
+    "nodemon": "^3.1.14"
+  },
+  "engines": {
+    "node": ">=22.0.0"
   }
 }
